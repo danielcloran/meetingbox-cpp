@@ -5,6 +5,8 @@ else
     if grep -q "BCM" /proc/cpuinfo && [ ! -d "./libs/rpi-rgb-led-matrix" ]; then
         echo "This is a Raspberry Pi."
         sudo apt install -y ninja-build
+        set(ENV{VCPKG_MAX_CONCURRENCY} 4)
+        set(ENV{VCPKG_FORCE_SYSTEM_BINARIES} 1)
         git clone https://github.com/hzeller/rpi-rgb-led-matrix ./libs/rpi-rgb-led-matrix
         make -C libs/rpi-rgb-led-matrix/
     fi
