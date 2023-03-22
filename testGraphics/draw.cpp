@@ -4,7 +4,8 @@ void draw(sf::RenderTexture &renderTexture, int width, int height) {
     sf::RenderWindow window(sf::VideoMode(width, height), "SFML Window");
 
     // Create sprite from texture
-    sf::Sprite sprite(renderTexture.getTexture());
+    const sf::Texture& texture = renderTexture.getTexture();
+    sf::Sprite sprite(texture);
 
     // Draw sprite on window
     window.draw(sprite);

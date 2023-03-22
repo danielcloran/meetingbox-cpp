@@ -4,6 +4,7 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/libs/vcpkg/installed/x64-osx/include/",
                 "/Library/Developer/CommandLineTools/SDKs/MacOSX13.1.sdk/usr/include/*"
             ],
             "defines": [],

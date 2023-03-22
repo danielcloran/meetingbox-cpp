@@ -1,4 +1,4 @@
-if [ -d "./vcpkg" ]; then
+if [ -d "./libs/vcpkg/" ]; then
     echo "Install script already run."
 else
     # If on RaspberryPi, and folder doesn't exist install the RGB LED Matrix library
