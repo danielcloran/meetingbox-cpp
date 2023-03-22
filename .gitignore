@@ -1,3 +1,2 @@
-/vcpkg
-/libs
-/build
+build/
+libs/
