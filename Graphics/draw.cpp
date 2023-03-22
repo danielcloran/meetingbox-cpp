@@ -19,7 +19,19 @@ void draw(sf::RenderTexture &renderTexture, int width, int height)
     if (canvas == NULL)
         return 1;
 
-    canvas->Fill(0, 0, 255);
+    const sf::Texture& texture = renderTexture.getTexture();
+    const sf::Uint8* pixels = texture.copyToImage().getPixelsPtr();
+    std::vector<unsigned char> framebuffer(pixels, pixels + width * height * 4);
+    // Set every pixel in canvas based on framebuffer, size is 64x64
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            int index = (x + y * width) * 4;
+            canvas->SetPixel(x, y, framebuffer[index], framebuffer[index + 1], framebuffer[index + 2]);
+        }
+    }
+
 
     // Animation finished. Shut down the RGB matrix.
     canvas->Clear();

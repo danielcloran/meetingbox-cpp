@@ -20,6 +20,8 @@ int main()
     renderTexture.clear(sf::Color::Black);
     renderTexture.draw(rect);
     renderTexture.display();
+    // TODO: Pass the framebuffer to your set_pixels function
+
 
     draw(renderTexture, width, height);
 
