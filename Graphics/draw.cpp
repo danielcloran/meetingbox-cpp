@@ -23,12 +23,12 @@ void draw()
     defaults.parallel = 3;
     defaults.show_refresh_rate = true;
 
-    runtime_opt.gpio_slowdown = 3;
+    // runtime_opt.gpio_slowdown = 3;
     Canvas *canvas = CreateMatrixFromOptions(defaults, runtime_opt);
     if (canvas == NULL)
         return;
 
-    canvas->SetPixel(0, 0, 255, 0, 0);
+    canvas->Fill(255, 0, 0);
     // const sf::Texture& texture = renderTexture.getTexture();
     // const sf::Uint8* pixels = texture.copyToImage().getPixelsPtr();
     // std::vector<unsigned char> framebuffer(pixels, pixels + width * height * 4);
