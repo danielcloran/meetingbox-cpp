@@ -23,7 +23,7 @@ void draw()
     defaults.parallel = 3;
     defaults.show_refresh_rate = true;
 
-    // runtime_opt.gpio_slowdown = 3;
+    runtime_opt.gpio_slowdown = 3;
     Canvas *canvas = CreateMatrixFromOptions(defaults, runtime_opt);
     if (canvas == NULL)
         return;
