@@ -16,9 +16,11 @@ void draw()
     RuntimeOptions runtime_opt;
 
     defaults.hardware_mapping = "regular"; // or e.g. "adafruit-hat"
+    defaults.panel_type = "FM6126A";
     defaults.rows = 64;
-    defaults.chain_length = 1;
-    defaults.parallel = 1;
+    defaults.cols = 64;
+    defaults.chain_length = 2;
+    defaults.parallel = 3;
     defaults.show_refresh_rate = true;
 
     runtime_opt.gpio_slowdown = 3;
