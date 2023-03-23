@@ -30,7 +30,19 @@ void draw()
     if (canvas == NULL)
         return;
 
-    canvas->Fill(160, 120, 50);
+    // Rotating fill colors randomly
+    int red = 0;
+    int green = 0;
+    int blue = 0;
+    while (true) {
+        red = rand() % 255;
+        green = rand() % 255;
+        blue = rand() % 255;
+        canvas->Fill(red, green, blue);
+        sleep(1);
+    }
+
+
     // const sf::Texture& texture = renderTexture.getTexture();
     // const sf::Uint8* pixels = texture.copyToImage().getPixelsPtr();
     // std::vector<unsigned char> framebuffer(pixels, pixels + width * height * 4);
