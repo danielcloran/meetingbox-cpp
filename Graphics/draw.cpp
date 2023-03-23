@@ -18,7 +18,7 @@ void draw()
     defaults.chain_length = 1;
     defaults.parallel = 1;
     defaults.show_refresh_rate = true;
-    Canvas *canvas = RGBMatrix::CreateFromFlags(&argc, &argv, &defaults);
+    Canvas *canvas = RGBMatrix::CreateFromFlags([], [], &defaults);
     if (canvas == NULL)
         return;
 
