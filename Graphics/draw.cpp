@@ -7,13 +7,9 @@
 #include <stdio.h>
 #include <signal.h>
 
-void init_window(sf::RenderWindow &window) {
-    window.create(sf::VideoMode(1, 1), "My Window");
-    window.setVisible(false);
-}
 
 
-void draw(sf::RenderWindow &, sf::RenderTexture &renderTexture, int width, int height)
+void draw()
 {
     RGBMatrix::Options defaults;
     defaults.hardware_mapping = "regular"; // or e.g. "adafruit-hat"
