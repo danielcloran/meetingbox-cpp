@@ -15,7 +15,9 @@ find_package(aws-cpp-sdk-core CONFIG REQUIRED)
 find_package(aws-cpp-sdk-lex CONFIG REQUIRED)
 find_package(jsoncpp CONFIG REQUIRED)
 find_package(eventpp CONFIG REQUIRED)
-find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
+
+#OpenGl
+find_package(OpenGL REQUIRED)
 
 # Add the main executable
 add_executable(main main.cpp)
@@ -27,6 +29,9 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm" AND ${CMAKE_HOST_SYSTEM_NAME} MATCHES
     target_link_libraries(my_executable ${CMAKE_SOURCE_DIR}/libs/rpi-rgb-led-matrix/lib/librgbmatrix.a)
 else()
     target_sources(main PRIVATE "testGraphics/draw.cpp")
+    find_package(glfw3 CONFIG REQUIRED)
+    find_package(GLEW REQUIRED)
+    target_link_libraries(main PRIVATE glfw GLEW::GLEW)
 endif()
 
 
@@ -36,8 +41,8 @@ target_link_libraries(main PRIVATE
     aws-cpp-sdk-lex
     JsonCpp::JsonCpp
     eventpp::eventpp
-
-    sfml-system sfml-network sfml-graphics sfml-window
+    OpenGL::GL
+    OpenGL::GLX
 )
 
 # Target include
