@@ -30,7 +30,7 @@ void draw()
     if (canvas == NULL)
         return;
 
-    // Rotating fill colors randomly
+    // Slowly fading between colors randomly
     int red = 0;
     int green = 0;
     int blue = 0;
@@ -38,8 +38,10 @@ void draw()
         red = rand() % 255;
         green = rand() % 255;
         blue = rand() % 255;
-        canvas->Fill(red, green, blue);
-        sleep(1);
+        for (int i = 0; i < 255; i++) {
+            canvas->Fill(red, green, blue);
+            usleep(10000);
+        }
     }
 
 
