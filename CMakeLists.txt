@@ -51,6 +51,6 @@ target_link_libraries(main PRIVATE
 target_include_directories(main PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/
 )
-target_include_directories(main INTERFACE
-    ${CMAKE_SOURCE_DIR}/libs/rpi-rgb-led-matrix/include/
+target_include_directories(main PRIVATE
+    "libs/rpi-rgb-led-matrix/include/"
 )
