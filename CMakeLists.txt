@@ -48,7 +48,7 @@ target_link_libraries(main PRIVATE
 )
 
 # Target include
-target_include_directories(main PRIVATE
+target_include_directories(main INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/
     ${CMAKE_SOURCE_DIR}/libs/
 )
