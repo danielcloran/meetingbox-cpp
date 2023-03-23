@@ -1,8 +1,3 @@
-#include <GLFW/glfw3.h>
-#include <GL/gl.h>
-#include <GL/glext.h>
-#include <iostream>
-
 #ifdef __APPLE__
 #include <GL/glew.h>
 #include <GLUT/glut.h>
@@ -10,6 +5,13 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 #endif
+
+#include <GLFW/glfw3.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
+#include <iostream>
+
+
 
 #include "draw.hpp"
 
