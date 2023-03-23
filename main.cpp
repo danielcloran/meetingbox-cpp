@@ -1,4 +1,3 @@
-#include <SFML/Graphics.hpp>
 #include <vector>
 #include <iostream>
 
@@ -7,32 +6,7 @@
 
 int main()
 {
-    const int width = 3200;
-    const int height = 640;
-
-    sf::RenderWindow window;
-    init_window(window);
-
-    sf::RenderTexture renderTexture;
-    renderTexture.create(64, 64);
-
-
-    sf::RectangleShape rect(sf::Vector2f(30, 30));
-    rect.setFillColor(sf::Color::Yellow);
-    rect.setPosition(sf::Vector2f(10, 10));
-
-    // sf::RectangleShape rect2(sf::Vector2f(5, 5));
-    // rect2.setFillColor(sf::Color::Red);
-    // rect2.setPosition(sf::Vector2f(30, 30));
-
-    renderTexture.clear(sf::Color::Black);
-    renderTexture.draw(rect);
-    // renderTexture.draw(rect2);
-    // renderTexture.display();
-    // TODO: Pass the framebuffer to your set_pixels function
-
-
-    draw(window, renderTexture, 64, 64);
+    draw();
 
     return 0;
 }
