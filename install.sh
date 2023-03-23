@@ -6,6 +6,12 @@ else
 
 fi
 
+# Cross Platform dependencies
+./libs/vcpkg/vcpkg install "aws-sdk-cpp[core, lex]" --recurse
+./libs/vcpkg/vcpkg install jsoncpp
+./libs/vcpkg/vcpkg install opengl
+./libs/vcpkg/vcpkg install eventpp
+
 # If on RaspberryPi, and folder doesn't exist install the RGB LED Matrix library
 if grep -q "BCM" /proc/cpuinfo; then
     echo "This is a Raspberry Pi."
@@ -20,14 +26,10 @@ if grep -q "BCM" /proc/cpuinfo; then
     export VCPKG_FORCE_SYSTEM_BINARIES=1
 else
     echo "This is not a Raspberry Pi."
+    brew install freeglut
     ./libs/vcpkg/vcpkg install glfw3
     ./libs/vcpkg/vcpkg install glew
+    ./libs/vcpkg/vcpkg install freeglut
 fi
-
-# Cross Platform dependencies
-./libs/vcpkg/vcpkg install "aws-sdk-cpp[core, lex]" --recurse
-./libs/vcpkg/vcpkg install jsoncpp
-./libs/vcpkg/vcpkg install opengl
-./libs/vcpkg/vcpkg install eventpp
 
 ./libs/vcpkg/vcpkg integrate install

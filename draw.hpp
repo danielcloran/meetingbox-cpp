@@ -4,6 +4,6 @@
 #include <vector>
 #include <iostream>
 
-void draw();
+void draw(GLubyte *pixels);
 
 #endif /* Draw_hpp */

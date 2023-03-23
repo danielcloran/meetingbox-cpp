@@ -10,7 +10,7 @@
 using namespace rgb_matrix;
 
 
-void draw()
+void draw(GLubyte *pixels)
 {
     RGBMatrix::Options defaults;
     RuntimeOptions runtime_opt;
@@ -31,17 +31,14 @@ void draw()
     if (canvas == NULL)
         return;
 
-    // Slowly fading between colors randomly
-    int red = 0;
-    int green = 0;
-    int blue = 0;
-    while (true) {
-        red = rand() % 255;
-        green = rand() % 255;
-        blue = rand() % 255;
-        for (int i = 0; i < 255; i++) {
-            canvas->Fill(red, green, blue);
-            usleep(10);
+    // Set every pixel in canvas based on framebuffer, size is 64x64
+    canvas->Fill(0, 100, 0);
+    for (int x = 0; x < 64; x++)
+    {
+        for (int y = 0; y < 64; y++)
+        {
+            int index = (x + y * 64) * 4;
+            canvas->SetPixel(x, y, pixels[index], pixels[index + 1], pixels[index + 2]);
         }
     }
 

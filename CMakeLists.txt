@@ -33,7 +33,7 @@ else()
     target_sources(main PRIVATE ${CMAKE_SOURCE_DIR}/testGraphics/draw.cpp)
     find_package(glfw3 CONFIG REQUIRED)
     find_package(GLEW REQUIRED)
-    target_link_libraries(main PRIVATE glfw3 GLEW::GLEW)
+    target_link_libraries(main PRIVATE GLEW::GLEW glfw)
 endif()
 
 # Link against the required libraries
