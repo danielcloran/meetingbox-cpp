@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 
-void draw(sf::RenderTexture &, int, int);
+void init_window(sf::RenderWindow &);
+void draw(sf::RenderWindow &, sf::RenderTexture &, int, int);
 
 #endif /* Draw_hpp */

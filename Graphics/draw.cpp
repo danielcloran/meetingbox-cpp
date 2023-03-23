@@ -7,7 +7,13 @@
 #include <stdio.h>
 #include <signal.h>
 
-void draw(sf::RenderTexture &renderTexture, int width, int height)
+void init_window(sf::RenderWindow &window) {
+    window.create(sf::VideoMode(1, 1), "My Window");
+    window.setVisible(false);
+}
+
+
+void draw(sf::RenderWindow &, sf::RenderTexture &renderTexture, int width, int height)
 {
     RGBMatrix::Options defaults;
     defaults.hardware_mapping = "regular"; // or e.g. "adafruit-hat"
@@ -22,7 +28,9 @@ void draw(sf::RenderTexture &renderTexture, int width, int height)
     const sf::Texture& texture = renderTexture.getTexture();
     const sf::Uint8* pixels = texture.copyToImage().getPixelsPtr();
     std::vector<unsigned char> framebuffer(pixels, pixels + width * height * 4);
+
     // Set every pixel in canvas based on framebuffer, size is 64x64
+    canvas->Fill(0, 100, 0);
     for (int x = 0; x < width; x++)
     {
         for (int y = 0; y < height; y++)
@@ -32,8 +40,10 @@ void draw(sf::RenderTexture &renderTexture, int width, int height)
         }
     }
 
+    sleep(100000000);
+
 
     // Animation finished. Shut down the RGB matrix.
-    canvas->Clear();
-    delete canvas;
+    // canvas->Clear();
+    // delete canvas;
 }

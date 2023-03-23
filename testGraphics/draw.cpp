@@ -1,22 +1,24 @@
 #include "draw.hpp"
 
-void draw(sf::RenderTexture &renderTexture, int width, int height) {
-    sf::RenderWindow window(sf::VideoMode(width, height), "SFML Window");
+void init_window(sf::RenderWindow &window) {
+    window.create(sf::VideoMode(3200, 640), "My Window");
+    window.setVisible(true);
+}
 
-    // Create sprite from texture
-    const sf::Texture& texture = renderTexture.getTexture();
-    sf::Sprite sprite(texture);
+void draw(sf::RenderWindow &window, sf::RenderTexture &renderTexture, int width, int height)
+{
+    sf::RenderStates states;
+    states.transform.translate(0, 0);
+    sf::Sprite sprite(renderTexture.getTexture());
+    sprite.setScale(10.f, 10.f);
+    window.draw(sprite, states);
 
-    // Draw sprite on window
-    window.draw(sprite);
-
-    // Display window
+    // Display the window
     window.display();
 
-    // Main loop
+    // Wait for the user to close the window
     while (window.isOpen())
     {
-        // Handle events
         sf::Event event;
         while (window.pollEvent(event))
         {
