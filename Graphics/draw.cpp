@@ -40,7 +40,7 @@ void draw()
         blue = rand() % 255;
         for (int i = 0; i < 255; i++) {
             canvas->Fill(red, green, blue);
-            usleep(10000);
+            usleep(10);
         }
     }
 
