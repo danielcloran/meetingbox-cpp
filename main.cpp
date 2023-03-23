@@ -1,9 +1,5 @@
-#ifdef __APPLE__
+#ifndef __APPLE__
 #include <GL/glew.h>
-#include <GLUT/glut.h>
-#else
-#include <GL/glew.h>
-#include <GL/glut.h>
 #endif
 
 #include <GLFW/glfw3.h>
