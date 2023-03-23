@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <signal.h>
 
+using namespace rgb_matrix;
 
 
 void draw()
