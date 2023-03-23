@@ -23,6 +23,7 @@ find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 add_executable(main main.cpp)
 
 # Check if we're building on a Raspberry Pi
+message(${CMAKE_SYSTEM_PROCESSOR})
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
     message(STATUS "Building on a Raspberry Pi")
     target_sources(main PRIVATE "/Graphics/draw.cpp")
