@@ -20,9 +20,9 @@ void draw()
     defaults.show_refresh_rate = true;
     Canvas *canvas = RGBMatrix::CreateFromFlags(&argc, &argv, &defaults);
     if (canvas == NULL)
-        return 1;
+        return;
 
-    canvas->SetPixl(0, 0, 255, 0, 0);
+    canvas->SetPixel(0, 0, 255, 0, 0);
     // const sf::Texture& texture = renderTexture.getTexture();
     // const sf::Uint8* pixels = texture.copyToImage().getPixelsPtr();
     // std::vector<unsigned char> framebuffer(pixels, pixels + width * height * 4);
