@@ -22,7 +22,7 @@ void draw()
     defaults.chain_length = 2;
     defaults.parallel = 3;
     defaults.show_refresh_rate = true;
-    defaults.pwm_lsb_nanoseconds = 9;
+    defaults.pwm_lsb_nanoseconds = 50;
 
     runtime_opt.gpio_slowdown = 4;
     Canvas *canvas = CreateMatrixFromOptions(defaults, runtime_opt);
