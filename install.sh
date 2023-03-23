@@ -12,6 +12,7 @@ fi
 ./libs/vcpkg/vcpkg install opengl
 ./libs/vcpkg/vcpkg install eventpp
 ./libs/vcpkg/vcpkg install glfw3
+./libs/vcpkg/vcpkg install glew
 
 # If on RaspberryPi, and folder doesn't exist install the RGB LED Matrix library
 if grep -q "BCM" /proc/cpuinfo; then
@@ -29,7 +30,7 @@ else
     echo "This is not a Raspberry Pi."
     brew install freeglut
 
-    ./libs/vcpkg/vcpkg install glew
+
     ./libs/vcpkg/vcpkg install freeglut
 fi
 

@@ -19,6 +19,7 @@ find_package(eventpp CONFIG REQUIRED)
 #OpenGl
 find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 find_package(glfw3 CONFIG REQUIRED)
+find_package(GLEW REQUIRED)
 
 # Add the main executable
 add_executable(main main.cpp)
@@ -33,8 +34,8 @@ else()
     message(STATUS "Not building on a Raspberry Pi")
     target_sources(main PRIVATE ${CMAKE_SOURCE_DIR}/testGraphics/draw.cpp)
 
-    find_package(GLEW REQUIRED)
-    target_link_libraries(main PRIVATE GLEW::GLEW )
+
+    # target_link_libraries(main PRIVATE  )
 endif()
 
 # Link against the required libraries
@@ -44,6 +45,7 @@ target_link_libraries(main PRIVATE
     JsonCpp::JsonCpp
     eventpp::eventpp
     glfw
+    GLEW::GLEW
     # OpenGL::GL
     ${OPENGL_LIBRARIES}
     # OpenGL::GLX
@@ -52,6 +54,7 @@ target_link_libraries(main PRIVATE
 # Target include
 target_include_directories(main PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/vcpkg/packages/
 )
 target_include_directories(main PRIVATE
     "libs/rpi-rgb-led-matrix/include/"
