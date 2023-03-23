@@ -18,6 +18,7 @@ find_package(eventpp CONFIG REQUIRED)
 
 #OpenGl
 find_package(OpenGL REQUIRED COMPONENTS OpenGL)
+find_package(glfw3 CONFIG REQUIRED)
 
 # Add the main executable
 add_executable(main main.cpp)
@@ -31,9 +32,9 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
 else()
     message(STATUS "Not building on a Raspberry Pi")
     target_sources(main PRIVATE ${CMAKE_SOURCE_DIR}/testGraphics/draw.cpp)
-    find_package(glfw3 CONFIG REQUIRED)
+
     find_package(GLEW REQUIRED)
-    target_link_libraries(main PRIVATE GLEW::GLEW glfw)
+    target_link_libraries(main PRIVATE GLEW::GLEW )
 endif()
 
 # Link against the required libraries
@@ -42,6 +43,7 @@ target_link_libraries(main PRIVATE
     aws-cpp-sdk-lex
     JsonCpp::JsonCpp
     eventpp::eventpp
+    glfw
     # OpenGL::GL
     ${OPENGL_LIBRARIES}
     # OpenGL::GLX

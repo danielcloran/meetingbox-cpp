@@ -21,7 +21,7 @@ if grep -q "BCM" /proc/cpuinfo; then
         git clone https://github.com/hzeller/rpi-rgb-led-matrix ./libs/rpi-rgb-led-matrix
         make -C libs/rpi-rgb-led-matrix/
     fi
-
+    sudo apt install -y libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa-dev pkg-config
     sudo apt-get install -y libx11-dev libxrandr-dev libxi-dev libudev-dev libgl1-mesa-dev ninja-build
     export VCPKG_MAX_CONCURRENCY=4
     export VCPKG_FORCE_SYSTEM_BINARIES=1
