@@ -17,23 +17,23 @@ find_package(jsoncpp CONFIG REQUIRED)
 find_package(eventpp CONFIG REQUIRED)
 
 #OpenGl
-find_package(OpenGL REQUIRED)
+find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 
 # Add the main executable
 add_executable(main main.cpp)
 
 # Check if we're building on a Raspberry Pi
-if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm" AND ${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux")
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
     message(STATUS "Building on a Raspberry Pi")
     target_sources(main PRIVATE "/Graphics/draw.cpp")
     target_link_libraries(main ${CMAKE_SOURCE_DIR}/libs/rpi-rgb-led-matrix/lib/librgbmatrix.a)
 else()
+    message(STATUS "Not building on a Raspberry Pi")
     target_sources(main PRIVATE "testGraphics/draw.cpp")
     find_package(glfw3 CONFIG REQUIRED)
     find_package(GLEW REQUIRED)
-    target_link_libraries(main PRIVATE glfw GLEW::GLEW)
+    target_link_libraries(main PRIVATE glfw3 GLEW::GLEW)
 endif()
-
 
 # Link against the required libraries
 target_link_libraries(main PRIVATE
@@ -41,8 +41,9 @@ target_link_libraries(main PRIVATE
     aws-cpp-sdk-lex
     JsonCpp::JsonCpp
     eventpp::eventpp
-    OpenGL::GL
-    OpenGL::GLX
+    # OpenGL::GL
+    ${OPENGL_LIBRARIES}
+    # OpenGL::GLX
 )
 
 # Target include
