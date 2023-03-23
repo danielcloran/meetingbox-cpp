@@ -13,12 +13,16 @@ using namespace rgb_matrix;
 void draw()
 {
     RGBMatrix::Options defaults;
+    RuntimeOptions runtime_opt;
+
     defaults.hardware_mapping = "regular"; // or e.g. "adafruit-hat"
     defaults.rows = 64;
     defaults.chain_length = 1;
     defaults.parallel = 1;
     defaults.show_refresh_rate = true;
-    Canvas *canvas = RGBMatrix::CreateFromFlags(NULL, NULL, &defaults);
+
+    runtime_opt.gpio_slowdown = 3;
+    Canvas *canvas = RGBMatrix::CreateMatrixFromOptions(defaults, runtime_opt);
     if (canvas == NULL)
         return;
 
