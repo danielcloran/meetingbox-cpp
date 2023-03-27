@@ -16,8 +16,8 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/pa
 # Find the required packages installed by vcpkg
 # find_package(aws-cpp-sdk-core CONFIG REQUIRED)
 # find_package(aws-cpp-sdk-lex CONFIG REQUIRED)
-find_package(jsoncpp CONFIG REQUIRED)
-find_package(eventpp CONFIG REQUIRED)
+# find_package(jsoncpp CONFIG REQUIRED)
+# find_package(eventpp CONFIG REQUIRED)
 find_package(sdl2 CONFIG REQUIRED)
 
 # Add the main executable
@@ -39,8 +39,8 @@ endif()
 target_link_libraries(main PRIVATE
     # aws-cpp-sdk-core
     # aws-cpp-sdk-lex
-    JsonCpp::JsonCpp
-    eventpp::eventpp
+    # JsonCpp::JsonCpp
+    # eventpp::eventpp
     SDL2::SDL2
 )
 
