@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "meetingbox",
+  "version": "0.15.2",
+  "dependencies": [
+    "sdl2",
+    "jsoncpp",
+    "fmt",
+    "eventpp"
+  ]
+}

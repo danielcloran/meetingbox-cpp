@@ -1,0 +1,8 @@
+Package: eventpp
+Version: 0.1.2
+Depends: vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-osx
+Multi-Arch: same
+Abi: 734038bedbfe9337f53833a51a8ecab1aa442ebac8ee46fed568bc6c4695afd1
+Description: C++ library for event dispatcher and callback list
+Status: install ok half-installed

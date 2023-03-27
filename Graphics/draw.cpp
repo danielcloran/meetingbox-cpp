@@ -10,7 +10,7 @@
 using namespace rgb_matrix;
 
 
-void draw(GLubyte *pixels)
+void draw(SDL_Surface *surface)
 {
     RGBMatrix::Options defaults;
     RuntimeOptions runtime_opt;
@@ -33,35 +33,25 @@ void draw(GLubyte *pixels)
 
     // Set every pixel in canvas based on framebuffer, size is 64x64
     canvas->Fill(0, 100, 0);
-    for (int x = 0; x < 64; x++)
+
+    Uint8* pixelData = new Uint8[WIDTH * HEIGHT * 4];
+    memcpy(pixelData, surface->pixels, WIDTH * HEIGHT * 4);
+
+    for (int x = 0; x < WIDTH; x++)
     {
-        for (int y = 0; y < 64; y++)
+        for (int y = 0; y < HEIGHT; y++)
         {
-            int index = (x + y * 64) * 4;
-            canvas->SetPixel(x, y, pixels[index], pixels[index + 1], pixels[index + 2]);
+            int index = (x + y * WIDTH) * 4;
+            canvas->SetPixel(x, y, pixelData[index], pixelData[index + 1], pixelData[index + 2]);
         }
     }
 
-
-    // const sf::Texture& texture = renderTexture.getTexture();
-    // const sf::Uint8* pixels = texture.copyToImage().getPixelsPtr();
-    // std::vector<unsigned char> framebuffer(pixels, pixels + width * height * 4);
-
-    // // Set every pixel in canvas based on framebuffer, size is 64x64
-    // canvas->Fill(0, 100, 0);
-    // for (int x = 0; x < width; x++)
-    // {
-    //     for (int y = 0; y < height; y++)
-    //     {
-    //         int index = (x + y * width) * 4;
-    //         canvas->SetPixel(x, y, framebuffer[index], framebuffer[index + 1], framebuffer[index + 2]);
-    //     }
-    // }
+    delete[] pixelData;
 
     sleep(100000000);
 
 
     // Animation finished. Shut down the RGB matrix.
-    // canvas->Clear();
-    // delete canvas;
+    canvas->Clear();
+    delete canvas;
 }

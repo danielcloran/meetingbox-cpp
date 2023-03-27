@@ -2,6 +2,13 @@
     "files.associations": {
         "*.html": "html",
         "vector": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "__split_buffer": "cpp",
+        "array": "cpp",
+        "bitset": "cpp",
+        "initializer_list": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "new": "cpp"
     }
 }

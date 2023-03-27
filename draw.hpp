@@ -3,10 +3,11 @@
 
 #include <vector>
 #include <iostream>
-#include <GLFW/glfw3.h>
-#include <GL/gl.h>
-#include <GL/glext.h>
+#include <SDL2/SDL.h>
 
-void draw(GLubyte *pixels);
+const int WIDTH = 320;
+const int HEIGHT = 64;
+
+void draw(SDL_Surface *surface);
 
 #endif /* Draw_hpp */

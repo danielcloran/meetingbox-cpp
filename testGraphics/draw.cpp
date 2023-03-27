@@ -1,27 +1,27 @@
 #include "draw.hpp"
 
 
-void draw()
+void draw(SDL_Surface *surface)
 {
-    // sf::RenderStates states;
-    // states.transform.translate(0, 0);
-    // sf::Sprite sprite(renderTexture.getTexture());
-    // sprite.setScale(10.f, 10.f);
-    // window.draw(sprite, states);
-
-    // // Display the window
-    // window.display();
-
-    // // Wait for the user to close the window
-    // while (window.isOpen())
-    // {
-    //     sf::Event event;
-    //     while (window.pollEvent(event))
-    //     {
-    //         if (event.type == sf::Event::Closed)
-    //         {
-    //             window.close();
-    //         }
-    //     }
-    // }
+    SDL_Window* window = SDL_CreateWindow("SDL2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
+    if (!window) {
+        std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
+        SDL_FreeSurface(surface);
+        SDL_Quit();
+        return;
+    }
+    // draw
+    SDL_Surface* windowSurface = SDL_GetWindowSurface(window);
+    SDL_BlitSurface(surface, NULL, windowSurface, NULL);
+    SDL_UpdateWindowSurface(window);
+    // wait
+    SDL_Event event;
+    bool quit = false;
+    while (!quit) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                quit = true;
+            }
+        }
+    }
 }
