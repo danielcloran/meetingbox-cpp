@@ -11,7 +11,7 @@
 # ./libs/vcpkg/vcpkg install eventpp
 
 # ./libs/vcpkg/vcpkg install opengl
-./libs/vcpkg/vcpkg install sdl2
+./libs/vcpkg/vcpkg install
 
 # If on RaspberryPi, and folder doesn't exist install the RGB LED Matrix library
 if grep -q "BCM" /proc/cpuinfo; then
