@@ -46,8 +46,8 @@ int main(int argc, char *argv[])
 
         SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 100, 0));
 
-        int squareWidth = 50;
-        int squareHeight = 50;
+        int squareWidth = 20;
+        int squareHeight = 20;
         int centerX = WIDTH / 2;
         int centerY = HEIGHT / 2;
         int offsetX = squareWidth / 2;
