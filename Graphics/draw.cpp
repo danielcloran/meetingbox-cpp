@@ -48,7 +48,7 @@ void draw(SDL_Surface *surface)
         for (int y = 0; y < HEIGHT; y++)
         {
             int index = (x + y * WIDTH) * 4;
-            canvas->SetPixel(x, y, surface->pixels[index], surface->pixels[index + 1], surface->pixels[index + 2]);
+            canvas->SetPixel(x, y, (Uint8 *)surface->pixels[index], (Uint8 *)surface->pixels[index + 1], (Uint8 *)surface->pixels[index + 2]);
         }
     }
 
