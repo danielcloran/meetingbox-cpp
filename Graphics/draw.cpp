@@ -10,9 +10,11 @@
 using namespace rgb_matrix;
 
 Canvas *canvas;
-Uint8* pixelData;
+FrameCanvas *off_screen_canvas_;
+Uint8 *pixelData;
 
-void init() {
+void init()
+{
     RGBMatrix::Options defaults;
     RuntimeOptions runtime_opt;
 
@@ -33,14 +35,16 @@ void init() {
     if (canvas == NULL)
         return;
 
+    off_screen_canvas_ = canvas->CreateFrameCanvas();
     pixelData = new Uint8[WIDTH * HEIGHT * 4];
 }
 
 void draw(SDL_Surface *surface)
 {
     // Set every pixel in canvas based on framebuffer, size is 64x64
-    canvas->Clear();
-    Uint8 * pixels = (Uint8 *)surface->pixels;
+    Uint8 *pixels = (Uint8 *)surface->pixels;
+    off_screen_canvas_->Fill(0, 0, 0);
+
     // memcpy(pixelData, surface->pixels, WIDTH * HEIGHT * 4);
 
     for (int x = 0; x < WIDTH; x++)
@@ -48,14 +52,15 @@ void draw(SDL_Surface *surface)
         for (int y = 0; y < HEIGHT; y++)
         {
             int index = (x + y * WIDTH) * 4;
-            canvas->SetPixel(x, y, pixels[index], pixels[index + 1], pixels[index + 2]);
+            off_screen_canvas_->SetPixel(x, y, pixels[index], pixels[index + 1], pixels[index + 2]);
         }
     }
+
+    off_screen_canvas_ = canvas->SwapOnVSync(off_screen_canvas_);
 
     // delete[] pixelData;
 
     // sleep(100000000);
-
 
     // Animation finished. Shut down the RGB matrix.
     // canvas->Clear();
