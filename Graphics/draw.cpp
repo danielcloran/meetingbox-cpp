@@ -42,17 +42,19 @@ void init()
 void draw(SDL_Surface *surface)
 {
     // Set every pixel in canvas based on framebuffer, size is 64x64
-    Uint8 *pixels = (Uint8 *)surface->pixels;
+    SDL_LockSurface(surface);
+    memcpy(pixelData, surface->pixels, WIDTH * HEIGHT * 4);
+    SDL_UnlockSurface(surface);
+
     off_screen_canvas_->Fill(0, 0, 0);
 
-    // memcpy(pixelData, surface->pixels, WIDTH * HEIGHT * 4);
 
     for (int x = 0; x < WIDTH; x++)
     {
         for (int y = 0; y < HEIGHT; y++)
         {
             int index = (x + y * WIDTH) * 4;
-            off_screen_canvas_->SetPixel(x, y, pixels[index], pixels[index + 1], pixels[index + 2]);
+            off_screen_canvas_->SetPixel(x, y, pixelData[index], pixelData[index + 1], pixelData[index + 2]);
         }
     }
 
