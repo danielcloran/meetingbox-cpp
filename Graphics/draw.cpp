@@ -25,7 +25,7 @@ void draw(SDL_Surface *surface)
     defaults.pwm_lsb_nanoseconds = 50;
 
     // turn off hardware pulse
-    runtime_opt.hardware_pulse = false;
+    defaults.disable_hardware_pulsing = true;
 
     runtime_opt.gpio_slowdown = 4;
     Canvas *canvas = CreateMatrixFromOptions(defaults, runtime_opt);
