@@ -9,7 +9,7 @@
 
 using namespace rgb_matrix;
 
-Canvas *canvas;
+RGBMatrix *canvas;
 FrameCanvas *off_screen_canvas_;
 Uint8 *pixelData;
 
