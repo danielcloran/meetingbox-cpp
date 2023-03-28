@@ -8,6 +8,8 @@
 const int WIDTH = 320;
 const int HEIGHT = 64;
 
+void init();
+
 void draw(SDL_Surface *surface);
 
 #endif /* Draw_hpp */

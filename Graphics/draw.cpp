@@ -9,9 +9,9 @@
 
 using namespace rgb_matrix;
 
+Canvas *canvas;
 
-void draw(SDL_Surface *surface)
-{
+void init() {
     RGBMatrix::Options defaults;
     RuntimeOptions runtime_opt;
 
@@ -28,12 +28,17 @@ void draw(SDL_Surface *surface)
     // defaults.disable_hardware_pulsing = true;
 
     runtime_opt.gpio_slowdown = 4;
-    Canvas *canvas = CreateMatrixFromOptions(defaults, runtime_opt);
+    canvas = CreateMatrixFromOptions(defaults, runtime_opt);
     if (canvas == NULL)
         return;
 
+
+}
+
+void draw(SDL_Surface *surface)
+{
     // Set every pixel in canvas based on framebuffer, size is 64x64
-    canvas->Fill(0, 100, 0);
+    canvas->Clear();
 
     Uint8* pixelData = new Uint8[WIDTH * HEIGHT * 4];
     memcpy(pixelData, surface->pixels, WIDTH * HEIGHT * 4);
@@ -53,6 +58,6 @@ void draw(SDL_Surface *surface)
 
 
     // Animation finished. Shut down the RGB matrix.
-    canvas->Clear();
-    delete canvas;
+    // canvas->Clear();
+    // delete canvas;
 }

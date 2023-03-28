@@ -43,7 +43,6 @@ target_link_libraries(main PRIVATE
     # eventpp::eventpp
     SDL2::SDL2
     -lpthread
-    -lrt
     -lm
 )
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread")
@@ -52,7 +51,7 @@ target_link_libraries(main PRIVATE
 
 target_include_directories(main PRIVATE
     "${CMAKE_SOURCE_DIR}/"
-    "vcpkg_installed/x64-osx/include/SDL2/"
+    "vcpkg_installed/x64-osx/include/"
     "libs/vcpkg/packages/"
     "libs/rpi-rgb-led-matrix/include/"
 )
