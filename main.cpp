@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
             angle = 0.0f;
         }
 
-        SDL_Delay(10);
+        // SDL_Delay(10);
     }
 
     SDL_FreeSurface(surface);
