@@ -42,8 +42,11 @@ target_link_libraries(main PRIVATE
     # JsonCpp::JsonCpp
     # eventpp::eventpp
     SDL2::SDL2
+    -lpthread
+    -lrt
+    -lm
 )
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread")
+# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread")
 
 
 
