@@ -39,7 +39,7 @@ void init() {
 void draw(SDL_Surface *surface)
 {
     // Set every pixel in canvas based on framebuffer, size is 64x64
-    // canvas->Clear();
+    canvas->Clear();
     Uint8 * pixels = (Uint8 *)surface->pixels;
     // memcpy(pixelData, surface->pixels, WIDTH * HEIGHT * 4);
 
