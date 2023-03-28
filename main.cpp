@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 
         draw(surface);
 
-        angle += 1.0f;
+        angle += 0.2f;
         if (angle >= 360.0f)
         {
             angle = 0.0f;
