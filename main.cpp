@@ -46,19 +46,19 @@ int main(int argc, char *argv[])
 
         SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 100, 0));
 
-        // int squareWidth = 20;
-        // int squareHeight = 20;
-        // int centerX = WIDTH / 2;
-        // int centerY = HEIGHT / 2;
-        // int offsetX = squareWidth / 2;
-        // int offsetY = squareHeight / 2;
+        int squareWidth = 20;
+        int squareHeight = 20;
+        int centerX = WIDTH / 2;
+        int centerY = HEIGHT / 2;
+        int offsetX = squareWidth / 2;
+        int offsetY = squareHeight / 2;
 
-        // float radians = angle * M_PI / 180.0f;
-        // int xOffset = static_cast<int>(offsetX * cos(radians) - offsetY * sin(radians));
-        // int yOffset = static_cast<int>(offsetX * sin(radians) + offsetY * cos(radians));
+        float radians = angle * M_PI / 180.0f;
+        int xOffset = static_cast<int>(offsetX * cos(radians) - offsetY * sin(radians));
+        int yOffset = static_cast<int>(offsetX * sin(radians) + offsetY * cos(radians));
 
-        // SDL_Rect square = {centerX - xOffset, centerY - yOffset, squareWidth, squareHeight};
-        // SDL_FillRect(surface, &square, SDL_MapRGB(surface->format, 80, 0, 0));
+        SDL_Rect square = {centerX - xOffset, centerY - yOffset, squareWidth, squareHeight};
+        SDL_FillRect(surface, &square, SDL_MapRGB(surface->format, 80, 0, 0));
 
         draw(surface);
 
