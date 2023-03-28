@@ -36,13 +36,13 @@ int main(int argc, char *argv[])
 
     while (!quit)
     {
-        while (SDL_PollEvent(&event))
-        {
-            if (event.type == SDL_QUIT)
-            {
-                quit = true;
-            }
-        }
+        // while (SDL_PollEvent(&event))
+        // {
+        //     if (event.type == SDL_QUIT)
+        //     {
+        //         quit = true;
+        //     }
+        // }
 
         SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 100, 0));
 
