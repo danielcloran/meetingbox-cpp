@@ -3,6 +3,6 @@
   "name": "meetingbox",
   "version": "0.15.2",
   "dependencies": [
-    "sdl2"
+    "sdl2[base,core]"
   ]
 }
