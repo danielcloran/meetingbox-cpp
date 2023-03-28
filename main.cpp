@@ -15,10 +15,10 @@ int main(int argc, char* argv[]) {
         SDL_Quit();
         return 1;
     }
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 255, 0));
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 100, 0));
 
     SDL_Rect square = {100, 20, 50, 50};
-    SDL_FillRect(surface, &square, SDL_MapRGB(surface->format, 255, 0, 0));
+    SDL_FillRect(surface, &square, SDL_MapRGB(surface->format, 80, 0, 0));
 
     // Do something with pixelData, e.g., send it to the LED panel using SPI
     // Draw surface to window
