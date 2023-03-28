@@ -62,11 +62,11 @@ int main(int argc, char *argv[])
 
         draw(surface);
 
-        // angle += 1.0f;
-        // if (angle >= 360.0f)
-        // {
-        //     angle = 0.0f;
-        // }
+        angle += 1.0f;
+        if (angle >= 360.0f)
+        {
+            angle = 0.0f;
+        }
 
         SDL_Delay(20);
     }
