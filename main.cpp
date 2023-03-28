@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        // SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 100, 0));
+        SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 100, 0));
 
         // int squareWidth = 20;
         // int squareHeight = 20;
