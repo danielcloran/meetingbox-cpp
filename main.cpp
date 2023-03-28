@@ -29,6 +29,8 @@ int main(int argc, char *argv[])
     // // Draw surface to window
 
     // draw(surface);
+    SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" );
+
 
     bool quit = false;
     SDL_Event event;
