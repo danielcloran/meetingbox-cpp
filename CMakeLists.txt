@@ -28,7 +28,7 @@ message(${CMAKE_SYSTEM_PROCESSOR})
 
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
     message(STATUS "Building on a Raspberry Pi")
-    # target_sources(main PRIVATE ${CMAKE_SOURCE_DIR}/Graphics/draw.cpp)
+    target_sources(main PRIVATE ${CMAKE_SOURCE_DIR}/Graphics/draw.cpp)
     target_link_libraries(main PRIVATE ${CMAKE_SOURCE_DIR}/libs/rpi-rgb-led-matrix/lib/librgbmatrix.a)
 else()
     message(STATUS "Not building on a Raspberry Pi")
@@ -46,7 +46,8 @@ target_link_libraries(main PRIVATE
 
 
 target_include_directories(main PRIVATE
-    ${CMAKE_SOURCE_DIR}/
+    "${CMAKE_SOURCE_DIR}/"
+    "vcpkg_installed/x64-osx/include/SDL2/"
     "libs/vcpkg/packages/"
     "libs/rpi-rgb-led-matrix/include/"
 )
