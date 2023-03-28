@@ -5,7 +5,8 @@
   "dependencies": [
     {
       "name": "sdl2",
-      "features": ["base", "core"]
+      "features": ["base"],
+      "default-features": false
     }
   ]
 }
