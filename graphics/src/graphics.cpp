@@ -1,13 +1,12 @@
-#include <SDL2/SDL.h>
-#include <iostream>
+#include "graphics.hpp"
 #include "draw.hpp"
 
-int main(int argc, char *argv[])
+void run()
 {
     if (SDL_Init(SDL_INIT_EVERYTHING & ~SDL_INIT_VIDEO) < 0)
     {
         std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
-        return 1;
+        return;
     }
 
     SDL_Surface *surface = SDL_CreateRGBSurface(0, WIDTH, HEIGHT, 32, 0, 0, 0, 0);
@@ -15,7 +14,7 @@ int main(int argc, char *argv[])
     {
         std::cerr << "Failed to create surface: " << SDL_GetError() << std::endl;
         SDL_Quit();
-        return 1;
+        return;
     }
 
     SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
@@ -96,6 +95,4 @@ int main(int argc, char *argv[])
 
     SDL_FreeSurface(surface);
     SDL_Quit();
-
-    return 0;
 }

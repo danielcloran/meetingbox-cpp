@@ -1,5 +1,5 @@
-#ifndef Draw_hpp
-#define Process_hpp
+#ifndef GRAPHICS_HPP
+#define GRAPHICS_HPP
 
 #include <vector>
 #include <iostream>
@@ -8,8 +8,6 @@
 const int WIDTH = 64;
 const int HEIGHT = 64;
 
-void init();
+void run();
 
-void draw(SDL_Surface *surface);
-
-#endif /* Draw_hpp */
+#endif // GRAPHICS_HPP

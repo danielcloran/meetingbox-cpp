@@ -1,11 +1,22 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "meetingbox",
-  "version": "0.15.2",
+  "version": "0.1",
+  "builtin-baseline": "c9f906558f9bb12ee9811d6edc98ec9255c6cda5",
   "dependencies": [
     {
       "name": "sdl2",
-      "default-features": false
-    }
+      "version>=": "2.0.20"
+    },
+    {
+      "name": "aws-sdk-cpp",
+      "features": [
+        "lex"
+      ]
+    },
+    "eventpp",
+    "fmt",
+    "spdlog",
+    "jsoncpp"
   ]
 }
