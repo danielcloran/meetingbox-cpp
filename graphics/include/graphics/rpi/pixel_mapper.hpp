@@ -1,7 +1,7 @@
 #ifndef PIXEL_MAPPER_H
 #define PIXEL_MAPPER_H
 
-#include <rpi-rgb-led-matrix/include/pixel-mapper.h>
+#include <pixel-mapper.h>
 
 class PixelMapper : public rgb_matrix::PixelMapper
 {
