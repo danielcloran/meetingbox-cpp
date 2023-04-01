@@ -36,7 +36,7 @@ void init()
     if (canvas == NULL)
         return;
 
-    canvas->ApplyPixelMapper(new PixelMapper());
+    canvas->ApplyPixelMapper(new CustomMapper());
 
     off_screen_canvas_ = canvas->CreateFrameCanvas();
     pixelData = new Uint8[WIDTH * HEIGHT * 4];

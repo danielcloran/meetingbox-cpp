@@ -3,7 +3,7 @@
 
 #include <pixel-mapper.h>
 
-class PixelMapper : public rgb_matrix::PixelMapper
+class CustomMapper : public rgb_matrix::PixelMapper
 {
     virtual const char *GetName() const { return "BoxMapper"; }
     virtual bool GetSizeMapping(int matrix_width, int matrix_height,
