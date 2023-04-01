@@ -1,4 +1,4 @@
-#include "draw.hpp"
+#include "graphics/draw.hpp"
 
 SDL_Window* window;
 void init() {

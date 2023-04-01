@@ -1,5 +1,5 @@
-#include "graphics.hpp"
-#include "draw.hpp"
+#include "graphics/graphics.hpp"
+#include "graphics/draw.hpp"
 
 void run()
 {

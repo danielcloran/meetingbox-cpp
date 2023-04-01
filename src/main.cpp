@@ -1,7 +1,8 @@
 // #include <SDL2/SDL.h>
-#include "graphics.hpp"
+#include "graphics/graphics.hpp"
+#include "events/event_queue.hpp"
 #include <iostream>
-// #include "events/include/event_queue.hpp"
+
 
 int main(int argc, char *argv[])
 {

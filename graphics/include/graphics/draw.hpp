@@ -1,7 +1,7 @@
 #ifndef DRAW_hpp
 #define DRAW_hpp
 
-#include "graphics.hpp"
+#include "graphics/graphics.hpp"
 
 void init();
 
