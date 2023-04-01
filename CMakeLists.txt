@@ -10,7 +10,7 @@ add_executable(main src/main.cpp)
 # Add vcpkg toolchain file to enable vcpkg packages
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/libs/vcpkg/scripts/buildsystems/vcpkg.cmake)
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/libs/vcpkg/packages")
-set(VCPKG_INCLUDE "${CMAKE_SOURCE_DIR}/libs/aarch64/include/" "${CMAKE_SOURCE_DIR}/libs/x64-osx/include")
+set(VCPKG_INCLUDE "${CMAKE_SOURCE_DIR}/libs/arm64-linux/include/" "${CMAKE_SOURCE_DIR}/libs/x64-osx/include")
 
 
 # Find the required packages installed by vcpkg

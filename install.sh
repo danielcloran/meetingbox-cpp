@@ -20,4 +20,3 @@ else
 fi
 
 ./libs/vcpkg/vcpkg install --x-install-root=libs
-./libs/vcpkg/vcpkg integration install
