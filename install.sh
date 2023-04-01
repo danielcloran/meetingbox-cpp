@@ -2,6 +2,7 @@
 if grep -q "BCM" /proc/cpuinfo; then
     echo "This is a Raspberry Pi."
     export VCPKG_FORCE_SYSTEM_BINARIES=1
+    sudo apt-get remove libsdl2-dev libsdl2-2.0-0
     if [ ! -d "./libs/rpi-rgb-led-matrix" ]; then
         git clone https://github.com/hzeller/rpi-rgb-led-matrix ./libs/rpi-rgb-led-matrix
         make -C libs/rpi-rgb-led-matrix/
@@ -20,3 +21,13 @@ else
 fi
 
 ./libs/vcpkg/vcpkg install --x-install-root=libs
+
+
+# wget https://github.com/libsdl-org/SDL/archive/refs/tags/release-2.26.4.zip
+# unzip release-2.26.4.zip
+# cd SDL-release-2.26.4
+# mkdir build
+# cd build
+# ../configure
+# make
+# sudo make install
