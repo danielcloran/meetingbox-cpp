@@ -1,4 +1,5 @@
 #include "graphics/draw.hpp"
+#include "graphics/rpi/pixel_mapper.hpp"
 
 #include "led-matrix.h"
 
@@ -34,6 +35,8 @@ void init()
     canvas = CreateMatrixFromOptions(defaults, runtime_opt);
     if (canvas == NULL)
         return;
+
+    canvas->ApplyPixelMapper(new PixelMapper());
 
     off_screen_canvas_ = canvas->CreateFrameCanvas();
     pixelData = new Uint8[WIDTH * HEIGHT * 4];
