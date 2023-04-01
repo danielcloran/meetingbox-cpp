@@ -6,13 +6,11 @@
   "dependencies": [
     {
       "name": "sdl2",
-      "version>=": "2.9.22"
+      "version>=": "2.26.4"
     },
     {
       "name": "aws-sdk-cpp",
-      "features": [
-        "lex"
-      ]
+      "features": ["lex"]
     },
     "eventpp",
     "fmt",
