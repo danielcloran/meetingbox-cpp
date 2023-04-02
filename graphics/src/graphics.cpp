@@ -89,7 +89,7 @@ void run()
 
         draw(surface);
 
-        // SDL_Delay(20);
+        SDL_Delay(20);
     }
 
     SDL_FreeSurface(surface);
