@@ -17,6 +17,7 @@ set(VCPKG_INCLUDE "${CMAKE_SOURCE_DIR}/libs/arm64-linux/include/" "${CMAKE_SOURC
 find_package(aws-cpp-sdk-core CONFIG REQUIRED)
 find_package(aws-cpp-sdk-lex CONFIG REQUIRED)
 find_package(sdl2 CONFIG REQUIRED)
+find_package(SDL2_image CONFIG REQUIRED)
 
 # Shared Libs
 find_package(fmt CONFIG REQUIRED)

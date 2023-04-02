@@ -8,6 +8,7 @@
       "name": "sdl2",
       "version>=": "2.26.4"
     },
+    "sdl2-image",
     {
       "name": "aws-sdk-cpp",
       "features": ["lex"]

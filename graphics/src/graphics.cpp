@@ -18,8 +18,12 @@ void run()
     }
 
     SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
-
     init();
+
+    IMG_Init(IMG_INIT_PNG);
+    // SDL_Surface * image = IMG_Load("../godot_64x64.png");
+    SDL_Texture *texture = IMG_LoadTexture(renderer, "../graphics/godot_64x64.png");
+
 
     // SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 100, 0));
 
@@ -30,7 +34,7 @@ void run()
     // // Draw surface to window
 
     // draw(surface);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+    // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
     bool quit = false;
     SDL_Event event;
@@ -65,8 +69,8 @@ void run()
             }
         }
 
-        SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 20, 0, 0));
-        SDL_RenderGeometry(renderer, nullptr, verts.data(), verts.size(), nullptr, 0);
+        // SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 20, 0, 0));
+        // SDL_RenderGeometry(renderer, nullptr, verts.data(), verts.size(), nullptr, 0);
 
         // int squareWidth = 20;
         // int squareHeight = 20;
@@ -82,6 +86,9 @@ void run()
         // SDL_Rect square = {centerX - xOffset, centerY - yOffset, squareWidth, squareHeight};
         // SDL_FillRect(surface, &square, SDL_MapRGB(surface->format, 80, 0, 0));
 
+        SDL_RenderCopy(renderer, texture, NULL, NULL);
+        SDL_RenderPresent(renderer);
+
         draw(surface);
 
         // angle += 0.2f;
@@ -94,5 +101,6 @@ void run()
     }
 
     SDL_FreeSurface(surface);
+    IMG_Quit();
     SDL_Quit();
 }
