@@ -27,7 +27,7 @@ void init()
     defaults.parallel = 3;
     defaults.show_refresh_rate = true;
     defaults.pwm_lsb_nanoseconds = 50;
-    defaults.led_rgb_sequence = "RBG";
+    defaults.led_rgb_sequence = "BGR";
 
     // turn off hardware pulse
     // defaults.disable_hardware_pulsing = true;
