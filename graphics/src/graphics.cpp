@@ -27,6 +27,15 @@ void run()
 
     // SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 100, 0));
 
+    // Create 5 64x64 screens on the 320x64 surface
+    std::vector<SDL_Rect> screens = {
+        {0, 0, 64, 64},
+        {64, 0, 64, 64},
+        {128, 0, 64, 64},
+        {192, 0, 64, 64},
+        {256, 0, 64, 64},
+    };
+
     // SDL_Rect square = {100, 7, 50, 50};
     // SDL_FillRect(surface, &square, SDL_MapRGB(surface->format, 80, 0, 0));
 
@@ -85,9 +94,13 @@ void run()
 
         // SDL_Rect square = {centerX - xOffset, centerY - yOffset, squareWidth, squareHeight};
         // SDL_FillRect(surface, &square, SDL_MapRGB(surface->format, 80, 0, 0));
-
-        SDL_RenderCopy(renderer, texture, NULL, NULL);
-        SDL_RenderPresent(renderer);
+        // paint the texture onto each screen
+        for (auto screen : screens)
+        {
+            SDL_RenderCopy(renderer, texture, NULL, &screen);
+        }
+        // SDL_RenderCopy(renderer, texture, NULL, NULL);
+        // SDL_RenderPresent(renderer);
 
         draw(surface);
 
