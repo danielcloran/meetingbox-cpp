@@ -89,7 +89,7 @@ void run()
         SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, frame);
         for (auto screen : screens)
         {
-            SDL_RenderCopy(renderer, tex, NULL, &screen);
+            SDL_RenderCopy(renderer, texture, NULL, &screen);
         }
 
         if (current_frame == animation->count)
