@@ -23,7 +23,8 @@ void run()
     IMG_Init(IMG_INIT_PNG);
     // SDL_Surface * image = IMG_Load("../godot_64x64.png");
     SDL_Texture *texture = IMG_LoadTexture(renderer, "../graphics/godot_64x64.png");
-
+    IMG_Animation *animation = IMG_LoadAnimation("../graphics/gif.gif");
+    int current_frame = 0;
 
     // SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 100, 0));
 
@@ -81,15 +82,31 @@ void run()
         // SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 20, 0, 0));
         // SDL_RenderGeometry(renderer, nullptr, verts.data(), verts.size(), nullptr, 0);
 
+        // Iterate through each frame in the animation
 
+        SDL_Surface *frame = animation->frames[current_frame];
+        int delay = animation->delays[current_frame++];
+        SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, frame);
         for (auto screen : screens)
         {
-            SDL_RenderCopy(renderer, texture, NULL, &screen);
+            SDL_RenderCopy(renderer, tex, NULL, &screen);
+        }
+
+        if (current_frame == animation->count)
+        {
+            current_frame = 0;
         }
 
         draw(surface);
 
-        SDL_Delay(20);
+        SDL_Delay(delay);
+
+        // use animation
+        // SDL_RenderCopy(renderer, animation->texture, &animation->frames[animation->currentFrame], nullptr);
+
+        // draw(surface);
+
+        // SDL_Delay(20);
     }
 
     SDL_FreeSurface(surface);
