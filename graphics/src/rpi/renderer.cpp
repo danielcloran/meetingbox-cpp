@@ -1,4 +1,4 @@
-#include "graphics/draw.hpp"
+#include "graphics/renderer.hpp"
 #include "graphics/rpi/pixel_mapper.hpp"
 
 #include "led-matrix.h"
@@ -12,14 +12,14 @@ using namespace rgb_matrix;
 
 RGBMatrix *canvas;
 FrameCanvas *off_screen_canvas_;
-Uint8 *pixelData;
+std::array<Uint8, WIDTH * HEIGHT * 4> pixelData;
 
-void init()
+void Renderer::initialize()
 {
     RGBMatrix::Options defaults;
     RuntimeOptions runtime_opt;
 
-    defaults.hardware_mapping = "regular"; // or e.g. "adafruit-hat"
+    defaults.hardware_mapping = "regular";
     defaults.panel_type = "FM6126A";
     defaults.rows = 64;
     defaults.cols = 64;
@@ -29,29 +29,26 @@ void init()
     defaults.pwm_lsb_nanoseconds = 50;
     defaults.led_rgb_sequence = "BGR";
 
-    // turn off hardware pulse
-    // defaults.disable_hardware_pulsing = true;
-
     runtime_opt.gpio_slowdown = 4;
-    canvas = CreateMatrixFromOptions(defaults, runtime_opt);
-    if (canvas == NULL)
-        return;
 
+    canvas = CreateMatrixFromOptions(defaults, runtime_opt);
+    if (canvas == NULL) {
+        std::cerr << "Failed to create RGBMatrix canvas" << std::endl;
+        return;
+    }
     canvas->ApplyPixelMapper(new CustomMapper());
 
     off_screen_canvas_ = canvas->CreateFrameCanvas();
-    pixelData = new Uint8[WIDTH * HEIGHT * 4];
 }
 
-void draw(SDL_Surface *surface)
+void Renderer::draw(SDL_Surface *surface)
 {
     // Set every pixel in canvas based on framebuffer, size is 64x64
     SDL_LockSurface(surface);
-    memcpy(pixelData, surface->pixels, WIDTH * HEIGHT * 4);
+    std::copy_n((Uint8 *)surface->pixels, WIDTH * HEIGHT * 4, pixelData.begin());
     SDL_UnlockSurface(surface);
 
-    off_screen_canvas_->Fill(0, 0, 0);
-
+    off_screen_canvas_->Clear();
 
     for (int x = 0; x < WIDTH; x++)
     {
@@ -63,12 +60,8 @@ void draw(SDL_Surface *surface)
     }
 
     off_screen_canvas_ = canvas->SwapOnVSync(off_screen_canvas_);
+}
 
-    // delete[] pixelData;
-
-    // sleep(100000000);
-
-    // Animation finished. Shut down the RGB matrix.
-    // canvas->Clear();
-    // delete canvas;
+void Renderer::quit() {
+    delete canvas;
 }

@@ -5,11 +5,11 @@ add_library(graphics src/graphics.cpp)
 # Set the sources for the events subsystem
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
     message(STATUS "Building on a Raspberry Pi")
-    target_sources(graphics PRIVATE src/rpi/draw.cpp)
+    target_sources(graphics PRIVATE src/rpi/renderer.cpp)
     target_link_libraries(graphics PRIVATE ${CMAKE_SOURCE_DIR}/libs/rpi-rgb-led-matrix/lib/librgbmatrix.a)
 else()
     message(STATUS "Not building on a Raspberry Pi")
-    target_sources(graphics PRIVATE src/draw.cpp)
+    target_sources(graphics PRIVATE src/renderer.cpp)
 endif()
 
 target_link_libraries(graphics PRIVATE $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>)

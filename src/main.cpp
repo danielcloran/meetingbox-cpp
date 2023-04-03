@@ -13,25 +13,27 @@ void event_loop(std::atomic<bool> &should_exit)
     }
 }
 
+void interruptHandler(int dummy)
+{
+    std::cout << "\nStopping Program" << std::endl;
+    Graphics::instance().quit();
+}
+
 int main()
 {
-    // Graphics::initialize();
+    signal(SIGINT, interruptHandler);
+
+    Graphics::instance().initialize();
+    Graphics::instance().start();
 
     // Start the process manager
     // ProcessManager::start();
 
-    std::atomic<bool> should_exit(false);
-    std::thread event_thread(event_loop, std::ref(should_exit));
-
-    run();
-
-    // Wait for the user to press a key to exit the program
-    std::cout << "Press any key to exit...\n";
-    std::cin.get();
-
     // Set the flag to exit the task thread
-    should_exit.store(true);
-    event_thread.join();
+    // should_exit.store(true);
+    // event_thread.join();
+    //   std::atomic<bool> should_exit(false);
+    // std::thread event_thread(event_loop, std::ref(should_exit));
 
     // queue.appendListener(EventType::stop, [](const EventPointer &event)
     //                      { std::cout << "Received stop!" << std::endl; });
