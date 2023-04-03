@@ -46,7 +46,7 @@ void Renderer::draw(SDL_Surface *surface)
 {
     // Set every pixel in canvas based on framebuffer, size is 64x64
     SDL_LockSurface(surface);
-    std::copy((Uint8 *)surface->pixels, WIDTH * HEIGHT * 4, pixelData.begin());
+    std::copy((Uint8 *)surface->pixels,(Uint8 *)surface->pixels + WIDTH * HEIGHT * 4, pixelData.begin());
     SDL_UnlockSurface(surface);
 
     off_screen_canvas_->Clear();
