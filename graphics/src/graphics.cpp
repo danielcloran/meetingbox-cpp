@@ -23,7 +23,7 @@ void run()
     IMG_Init(IMG_INIT_PNG);
     // SDL_Surface * image = IMG_Load("../godot_64x64.png");
     SDL_Texture *texture = IMG_LoadTexture(renderer, "../graphics/godot_64x64.png");
-    IMG_Animation *animation = IMG_LoadAnimation("../graphics/gif.gif");
+    IMG_Animation *animation = IMG_LoadAnimation("../graphics/smoke.gif");
     int current_frame = 0;
 
     // SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 100, 0));
@@ -89,7 +89,7 @@ void run()
         SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, frame);
         for (auto screen : screens)
         {
-            SDL_RenderCopy(renderer, texture, NULL, &screen);
+            SDL_RenderCopy(renderer, tex, NULL, &screen);
         }
 
         if (current_frame == animation->count)
