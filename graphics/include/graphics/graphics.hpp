@@ -12,9 +12,6 @@
 
 #include "graphics/renderer.hpp"
 
-const int WIDTH = 320;
-const int HEIGHT = 64;
-
 class Screen
 {
 public:

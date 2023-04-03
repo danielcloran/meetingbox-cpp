@@ -1,6 +1,6 @@
 #include "graphics/renderer.hpp"
 #include "graphics/rpi/pixel_mapper.hpp"
-#include "graphics/graphics.hpp"
+
 
 #include "led-matrix.h"
 
