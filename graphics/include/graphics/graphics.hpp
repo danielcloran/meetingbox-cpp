@@ -49,6 +49,8 @@ class Graphics
 public:
     void initialize();
     void start();
+    int add_process_screen(Screen::ScreenType screen_type);
+    void remove_process_screen(int screen_id);
     void quit();
 
     static Graphics &instance()
@@ -65,6 +67,8 @@ private:
 
     volatile bool quit_;
     std::thread paint_thread_;
+
+    int process_screen_id_;
 };
 
 #endif // GRAPHICS_HPP

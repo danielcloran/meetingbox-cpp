@@ -24,6 +24,20 @@ void Graphics::initialize()
 
     // Start the graphics paint thread
     quit_ = false;
+    process_screen_id_ = 0;
+}
+
+int Graphics::add_process_screen(Screen::ScreenType screen_type)
+{
+    SDL_Surface *surface = SDL_CreateRGBSurface(0, Screen::screen_sizes_.at(screen_type).w, Screen::screen_sizes_.at(screen_type).h, 32, 0, 0, 0, 0);
+    process_screens_.insert(std::make_pair(process_screen_id_, ProcessScreen{surface, screen_type}));
+    return ++process_screen_id_;
+}
+
+void Graphics::remove_process_screen(int screen_id)
+{
+    SDL_FreeSurface(process_screens_.at(screen_id).surface);
+    process_screens_.erase(screen_id);
 }
 
 void Graphics::start()
@@ -38,15 +52,16 @@ void Graphics::start()
                 quit_ = true;
             }
         }
-        SDL_Texture *texture = IMG_LoadTexture(renderer_, "../graphics/godot_64x64.png");
-        SDL_RenderCopy(renderer_, texture, NULL, &(Screen::screen_sizes_.at(Screen::TOP)));
 
-        // iterate through process_screens_
+        SDL_Texture *texture = IMG_LoadTexture(renderer_, "../graphics/godot_64x64.png");
+        SDL_RenderCopy(renderer_, texture, NULL, &(Screen::screen_sizes_.at(Screen::ALL)));
+
+        // iterate through process_screens_ and draw **IN ORDER**
         for (const auto &pair : process_screens_)
         {
             ProcessScreen value = pair.second;
 
-            // Possibly quite inefficient
+            // TODO: Possibly quite inefficient TBD
             SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer_, value.surface);
             SDL_RenderCopy(renderer_, tex, NULL, &(Screen::screen_sizes_.at(value.screen_type)));
             SDL_DestroyTexture(tex);
@@ -58,9 +73,8 @@ void Graphics::start()
 void Graphics::quit()
 {
     quit_ = true;
-    // SDL_DestroyRenderer(renderer_);
-    // SDL_FreeSurface(screen_);
-    // SDL_Quit();
+    SDL_DestroyRenderer(renderer_);
+    SDL_FreeSurface(screen_);
 }
 
 // void run()
