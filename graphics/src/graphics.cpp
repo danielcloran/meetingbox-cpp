@@ -26,14 +26,10 @@ void Graphics::initialize()
     quit_ = false;
     process_screen_id_ = 0;
 
-    // SDL_Texture *texture = IMG_LoadTexture(renderer_, "../graphics/godot_64x64.png");
-    int screenId = add_process_screen(Screen::MIMICK_ALL);
-    SDL_Surface *surface = process_screens_.at(screenId).surface;
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 25, 0));
-    SDL_Rect square = {50, 7, 20, 20};
-    SDL_FillRect(surface, &square, SDL_MapRGB(surface->format, 25, 0, 0));
+    int screenId = add_process_screen(Screen::ScreenType::TOP);
+    SDL_Surface* image = IMG_Load("../graphics/timebox.png");
+    SDL_BlitSurface(image, NULL, process_screens_.at(screenId).surface, NULL);
 
-    // SDL_RenderCopy(renderer_, texture, NULL, &(Screen::screen_sizes_.at(Screen::ALL)));
 }
 
 int Graphics::add_process_screen(Screen::ScreenType screen_type)
@@ -49,7 +45,7 @@ void Graphics::remove_process_screen(int screen_id)
     process_screens_.erase(screen_id);
 }
 
-void Graphics::start()
+void Graphics::process()
 {
     SDL_Event event;
     while (!quit_)
@@ -62,11 +58,9 @@ void Graphics::start()
             }
         }
 
-        // TODO: Possibly quite inefficient TBD
         // iterate through process_screens_ and draw **IN ORDER**
         for (const auto &pair : process_screens_)
         {
-
             ProcessScreen screen = pair.second;
             switch (screen.screen_type)
             {

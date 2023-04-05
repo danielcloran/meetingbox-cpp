@@ -9,36 +9,50 @@
 
 #include "events/events.hpp"
 
-using EventPointer = std::shared_ptr<Event>;
-struct EventPolicy
-{
-    static EventType getEvent(const EventPointer &event)
-    {
-        return event->getType();
-    }
-};
+#include <thread>
 
-using EQ = eventpp::EventQueue<EventType, void(const EventPointer &), EventPolicy>;
-EQ queue;
-
-class EventManager
+namespace events
 {
-public:
-    static EventManager &instance()
+    using EventPointer = std::shared_ptr<Event>;
+    struct EventPolicy
     {
-        static EventManager s;
-        return s;
-    }
+        static EventType getEvent(const EventPointer &event)
+        {
+            return event->getType();
+        }
+    };
+    using EQ = eventpp::EventQueue<EventType, void(const EventPointer &), EventPolicy>;
+    EQ queue;
 
     void initialize();
     void quit();
 
-private:
-    void event_loop();
+    namespace detail
+    {
+        void event_loop();
+        extern volatile bool quit_;
+        extern std::thread event_thread_;
+    }
+}
 
-    volatile bool quit_;
-    std::thread event_thread_;
-};
+// class EventManager
+// {
+// public:
+//     static EventManager &instance()
+//     {
+//         static EventManager s;
+//         return s;
+//     }
+
+//     void initialize();
+//     void quit();
+
+// private:
+//     void event_loop();
+
+//     volatile bool quit_;
+//     std::thread event_thread_;
+// };
 // #define eventCallback(func) (std::bind(func, this, std::placeholders::_1))
 
 // // Global Event Queue Format Init

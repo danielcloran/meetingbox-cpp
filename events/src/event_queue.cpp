@@ -1,21 +1,32 @@
 #include "events/event_queue.hpp"
 
-void EventManager::initialize()
+namespace events
 {
-    quit_ = false;
-    event_thread_ = std::thread(&EventManager::event_loop, this);
-}
-
-void EventManager::event_loop()
-{
-    while (!queue.waitFor(std::chrono::milliseconds(10)) && !quit_)
+    namespace detail
     {
-        queue.process();
-    }
-};
+        volatile bool quit_ = false;
+        std::thread event_thread_;
 
-void EventManager::quit()
-{
-    quit_ = true;
-    event_thread_.join();
-};
+        void event_loop()
+        {
+            while (!queue.waitFor(std::chrono::milliseconds(10)) && !quit_)
+            {
+                queue.process();
+            }
+        }
+    }
+
+    void initialize()
+    {
+        detail::event_thread_ = std::thread(detail::event_loop);
+    }
+
+    void quit()
+    {
+        detail::quit_ = true;
+        if (detail::event_thread_.joinable())
+        {
+            detail::event_thread_.join();
+        }
+    }
+}

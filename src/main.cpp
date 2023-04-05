@@ -16,12 +16,12 @@ int main()
     signal(SIGINT, interruptHandler);
 
 
-    EventManager::instance().initialize();
+    events::initialize();
 
     Graphics::instance().initialize();
-    Graphics::instance().start();
+    Graphics::instance().process();
 
-    EventManager::instance().quit();
+    events::quit();
 
     // Start the process manager
     // ProcessManager::start();

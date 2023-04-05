@@ -59,7 +59,7 @@ class Graphics
 {
 public:
     void initialize();
-    void start();
+    void process();
     int add_process_screen(Screen::ScreenType screen_type);
     void remove_process_screen(int screen_id);
     void quit();
