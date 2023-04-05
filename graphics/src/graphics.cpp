@@ -27,12 +27,11 @@ void Graphics::initialize()
     process_screen_id_ = 0;
 
     // SDL_Texture *texture = IMG_LoadTexture(renderer_, "../graphics/godot_64x64.png");
-    int screenId = add_process_screen(Screen::ALL);
+    int screenId = add_process_screen(Screen::MIMICK_ALL);
     SDL_Surface *surface = process_screens_.at(screenId).surface;
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 100, 0));
-    SDL_Rect square = {100, 7, 50, 50};
-    SDL_FillRect(surface, &square, SDL_MapRGB(surface->format, 80, 0, 0));
-
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 25, 0));
+    SDL_Rect square = {50, 7, 20, 20};
+    SDL_FillRect(surface, &square, SDL_MapRGB(surface->format, 25, 0, 0));
 
     // SDL_RenderCopy(renderer_, texture, NULL, &(Screen::screen_sizes_.at(Screen::ALL)));
 }
@@ -69,23 +68,19 @@ void Graphics::start()
         {
 
             ProcessScreen screen = pair.second;
-            SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer_, screen.surface);
             switch (screen.screen_type)
             {
             case Screen::MIMICK_ALL:
-                SDL_RenderCopy(renderer_, tex, NULL, &Screen::top_);
+                SDL_BlitSurface(screen.surface, NULL, screen_, &(Screen::screen_sizes_.at(Screen::TOP)));
             case Screen::MIMICK_SIDES:
                 for (SDL_Rect panel : Screen::sides_)
                 {
-                    SDL_RenderCopy(renderer_, tex, NULL, &panel);
+                    SDL_BlitSurface(screen.surface, NULL, screen_, &panel);
                 }
                 break;
             default:
-                SDL_RenderCopy(renderer_, tex, NULL, &(Screen::screen_sizes_.at(screen.screen_type)));
+                SDL_BlitSurface(screen.surface, NULL, screen_, &(Screen::screen_sizes_.at(screen.screen_type)));
             }
-
-
-            SDL_DestroyTexture(tex);
         }
         Renderer::draw(screen_);
     }

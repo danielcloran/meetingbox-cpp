@@ -29,7 +29,7 @@ public:
         BOTTOM_BAR
     };
 
-    static const std::unordered_map<ScreenType, SDL_Rect> screen_sizes_;
+    static std::unordered_map<ScreenType, SDL_Rect> screen_sizes_;
     static const std::vector<SDL_Rect> sides_;
     static const SDL_Rect top_;
 };
@@ -41,7 +41,7 @@ const std::vector<SDL_Rect> Screen::sides_ = {
     {192, 0, 64, 64}};
 const SDL_Rect Screen::top_ = {256, 0, 64, 64};
 
-const std::unordered_map<Screen::ScreenType, SDL_Rect> Screen::screen_sizes_ = {
+std::unordered_map<Screen::ScreenType, SDL_Rect> Screen::screen_sizes_ = {
     {ScreenType::ALL, {0, 0, 320, 64}},
     {ScreenType::MIMICK_ALL, {0, 0, 64, 64}},
     {ScreenType::SIDES, {0, 0, 256, 64}},
