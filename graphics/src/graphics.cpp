@@ -25,13 +25,23 @@ void Graphics::initialize()
     // Start the graphics paint thread
     quit_ = false;
     process_screen_id_ = 0;
+
+    // SDL_Texture *texture = IMG_LoadTexture(renderer_, "../graphics/godot_64x64.png");
+    int screenId = add_process_screen(Screen::ALL);
+    SDL_Surface *surface = process_screens_.at(screenId).surface;
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 100, 0));
+    SDL_Rect square = {100, 7, 50, 50};
+    SDL_FillRect(surface, &square, SDL_MapRGB(surface->format, 80, 0, 0));
+
+
+    // SDL_RenderCopy(renderer_, texture, NULL, &(Screen::screen_sizes_.at(Screen::ALL)));
 }
 
 int Graphics::add_process_screen(Screen::ScreenType screen_type)
 {
     SDL_Surface *surface = SDL_CreateRGBSurface(0, Screen::screen_sizes_.at(screen_type).w, Screen::screen_sizes_.at(screen_type).h, 32, 0, 0, 0, 0);
     process_screens_.insert(std::make_pair(process_screen_id_, ProcessScreen{surface, screen_type}));
-    return ++process_screen_id_;
+    return process_screen_id_++;
 }
 
 void Graphics::remove_process_screen(int screen_id)
@@ -53,17 +63,28 @@ void Graphics::start()
             }
         }
 
-        SDL_Texture *texture = IMG_LoadTexture(renderer_, "../graphics/godot_64x64.png");
-        SDL_RenderCopy(renderer_, texture, NULL, &(Screen::screen_sizes_.at(Screen::ALL)));
-
+        // TODO: Possibly quite inefficient TBD
         // iterate through process_screens_ and draw **IN ORDER**
         for (const auto &pair : process_screens_)
         {
-            ProcessScreen value = pair.second;
 
-            // TODO: Possibly quite inefficient TBD
-            SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer_, value.surface);
-            SDL_RenderCopy(renderer_, tex, NULL, &(Screen::screen_sizes_.at(value.screen_type)));
+            ProcessScreen screen = pair.second;
+            SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer_, screen.surface);
+            switch (screen.screen_type)
+            {
+            case Screen::MIMICK_ALL:
+                SDL_RenderCopy(renderer_, tex, NULL, &Screen::top_);
+            case Screen::MIMICK_SIDES:
+                for (SDL_Rect panel : Screen::sides_)
+                {
+                    SDL_RenderCopy(renderer_, tex, NULL, &panel);
+                }
+                break;
+            default:
+                SDL_RenderCopy(renderer_, tex, NULL, &(Screen::screen_sizes_.at(screen.screen_type)));
+            }
+
+
             SDL_DestroyTexture(tex);
         }
         Renderer::draw(screen_);

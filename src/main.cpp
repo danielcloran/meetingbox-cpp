@@ -5,14 +5,6 @@
 #include "graphics/graphics.hpp"
 #include "events/event_queue.hpp"
 
-void event_loop(std::atomic<bool> &should_exit)
-{
-    while (!queue.waitFor(std::chrono::milliseconds(10)) && !should_exit.load())
-    {
-        queue.process();
-    }
-}
-
 void interruptHandler(int dummy)
 {
     std::cout << "\nStopping Program" << std::endl;
@@ -23,8 +15,13 @@ int main()
 {
     signal(SIGINT, interruptHandler);
 
+
+    EventManager::instance().initialize();
+
     Graphics::instance().initialize();
     Graphics::instance().start();
+
+    EventManager::instance().quit();
 
     // Start the process manager
     // ProcessManager::start();

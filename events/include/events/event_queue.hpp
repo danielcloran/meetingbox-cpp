@@ -2,6 +2,8 @@
 #define EVENT_QUEUE_HPP
 
 #include <stdio.h>
+#include <thread>
+
 #include <eventpp/eventqueue.h>
 #include <eventpp/utilities/scopedremover.h>
 
@@ -19,6 +21,24 @@ struct EventPolicy
 using EQ = eventpp::EventQueue<EventType, void(const EventPointer &), EventPolicy>;
 EQ queue;
 
+class EventManager
+{
+public:
+    static EventManager &instance()
+    {
+        static EventManager s;
+        return s;
+    }
+
+    void initialize();
+    void quit();
+
+private:
+    void event_loop();
+
+    volatile bool quit_;
+    std::thread event_thread_;
+};
 // #define eventCallback(func) (std::bind(func, this, std::placeholders::_1))
 
 // // Global Event Queue Format Init
