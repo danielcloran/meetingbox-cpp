@@ -15,6 +15,9 @@
 #include "graphics/renderer.hpp"
 #include "events/event_queue.hpp"
 
+// Define TRANSPARENT as a  Uint32 color
+#define TRANSPARENT 0x00000000
+// #define TRANSPARENT SDL_Color(0, 0, 0, 128)
 class Screen
 {
 public:
@@ -52,7 +55,7 @@ std::unordered_map<Screen::ScreenType, SDL_Rect> Screen::screen_sizes_ = {
 struct ProcessScreen
 {
     SDL_Surface *surface;
-    SDL_Texture *texture;
+    SDL_Renderer *renderer;
     Screen::ScreenType screen_type;
 };
 
@@ -66,6 +69,7 @@ namespace graphics
 
     int add_process_screen(Screen::ScreenType screen_type);
     void remove_process_screen(int screen_id);
+    SDL_Renderer *get_process_renderer(int screen_id);
 
     namespace internal
     {
