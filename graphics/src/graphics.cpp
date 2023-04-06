@@ -26,15 +26,30 @@ void Graphics::initialize()
     quit_ = false;
     process_screen_id_ = 0;
 
+    int screen2 = add_process_screen(Screen::ScreenType::TOP);
+    // draw rect
+    SDL_Rect rect;
+    rect.x = 20;
+    rect.y = 0;
+    rect.w = 20;
+    rect.h = 20;
+    SDL_FillRect(process_screens_.at(screen2).surface, &rect, SDL_MapRGBA(process_screens_.at(screen2).surface->format, 255, 0, 0, 255));
+
     int screenId = add_process_screen(Screen::ScreenType::TOP);
-    SDL_Surface* image = IMG_Load("../graphics/timebox.png");
+    SDL_Surface *image = IMG_Load("../graphics/timebox.png");
     SDL_BlitSurface(image, NULL, process_screens_.at(screenId).surface, NULL);
+
+
 
 }
 
 int Graphics::add_process_screen(Screen::ScreenType screen_type)
 {
     SDL_Surface *surface = SDL_CreateRGBSurface(0, Screen::screen_sizes_.at(screen_type).w, Screen::screen_sizes_.at(screen_type).h, 32, 0, 0, 0, 0);
+    // set surface to transparent
+    SDL_FillRect(surface, nullptr, SDL_MapRGBA(surface->format, 0, 0, 0, 128));
+    SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGBA(surface->format, 0, 0, 0, 128));
+
     process_screens_.insert(std::make_pair(process_screen_id_, ProcessScreen{surface, screen_type}));
     return process_screen_id_++;
 }
@@ -58,10 +73,10 @@ void Graphics::process()
             }
         }
 
-        // iterate through process_screens_ and draw **IN ORDER**
-        for (const auto &pair : process_screens_)
+        // iterate through process_screens_ backward and draw **IN ORDER**
+        for (auto pair = process_screens_.rbegin(); pair != process_screens_.rend(); ++pair)
         {
-            ProcessScreen screen = pair.second;
+            ProcessScreen screen = pair->second;
             switch (screen.screen_type)
             {
             case Screen::MIMICK_ALL:
