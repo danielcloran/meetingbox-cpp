@@ -87,7 +87,7 @@ namespace graphics
             Renderer::draw(internal::screen_);
 
             // wait
-            SDL_Delay(10);
+            SDL_Delay(80);
         }
     }
 
