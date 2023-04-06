@@ -8,7 +8,7 @@
 void interruptHandler(int dummy)
 {
     std::cout << "\nStopping Program" << std::endl;
-    Graphics::instance().quit();
+    graphics::quit();
 }
 
 int main()
@@ -18,8 +18,8 @@ int main()
 
     events::initialize();
 
-    Graphics::instance().initialize();
-    Graphics::instance().process();
+    graphics::initialize();
+    graphics::loop(); // blocking
 
     events::quit();
 

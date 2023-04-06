@@ -52,34 +52,29 @@ std::unordered_map<Screen::ScreenType, SDL_Rect> Screen::screen_sizes_ = {
 struct ProcessScreen
 {
     SDL_Surface *surface;
+    SDL_Texture *texture;
     Screen::ScreenType screen_type;
 };
 
-class Graphics
+namespace graphics
 {
-public:
+    extern SDL_Renderer *renderer_;
+
     void initialize();
-    void process();
-    int add_process_screen(Screen::ScreenType screen_type);
-    void remove_process_screen(int screen_id);
+    void loop();
     void quit();
 
-    static Graphics &instance()
+    int add_process_screen(Screen::ScreenType screen_type);
+    void remove_process_screen(int screen_id);
+
+    namespace internal
     {
-        static Graphics s;
-        return s;
+        extern SDL_Surface *screen_;
+        extern volatile bool quit_;
+
+        extern int process_screen_id_;
+        extern std::map<int, ProcessScreen> process_screens_;
     }
-
-private:
-    SDL_Surface *screen_;
-    SDL_Renderer *renderer_;
-
-    std::map<int, ProcessScreen> process_screens_;
-
-    volatile bool quit_;
-    std::thread paint_thread_;
-
-    int process_screen_id_;
-};
+}
 
 #endif // GRAPHICS_HPP

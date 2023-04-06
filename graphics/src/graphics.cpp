@@ -1,105 +1,127 @@
 #include "graphics/graphics.hpp"
 
-void Graphics::initialize()
+namespace graphics
 {
-    if (SDL_Init(SDL_INIT_EVERYTHING & ~SDL_INIT_VIDEO & ~SDL_INIT_AUDIO) < 0)
+    SDL_Renderer * renderer_ = nullptr;
+
+    namespace internal
     {
-        std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
-        return;
+        volatile bool quit_ = false;
+        int process_screen_id_ = 0;
+        std::map<int, ProcessScreen> process_screens_;
+        SDL_Surface *screen_ = nullptr;
     }
-    // Allow SDL2 to attempt anti-aliasing
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
-    screen_ = SDL_CreateRGBSurface(0, WIDTH, HEIGHT, 32, 0, 0, 0, 0);
-    if (!screen_)
+    void initialize()
     {
-        std::cerr << "Failed to create surface: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return;
-    }
-    renderer_ = SDL_CreateSoftwareRenderer(screen_);
-
-    // After SDL2 has been initialized, we let the platform specific renderer init
-    Renderer::initialize();
-
-    // Start the graphics paint thread
-    quit_ = false;
-    process_screen_id_ = 0;
-
-    int screen2 = add_process_screen(Screen::ScreenType::TOP);
-    // draw rect
-    SDL_Rect rect;
-    rect.x = 20;
-    rect.y = 0;
-    rect.w = 20;
-    rect.h = 20;
-    SDL_FillRect(process_screens_.at(screen2).surface, &rect, SDL_MapRGBA(process_screens_.at(screen2).surface->format, 255, 0, 0, 255));
-
-    int screenId = add_process_screen(Screen::ScreenType::TOP);
-    SDL_Surface *image = IMG_Load("../graphics/timebox.png");
-    SDL_BlitSurface(image, NULL, process_screens_.at(screenId).surface, NULL);
-
-
-
-}
-
-int Graphics::add_process_screen(Screen::ScreenType screen_type)
-{
-    SDL_Surface *surface = SDL_CreateRGBSurface(0, Screen::screen_sizes_.at(screen_type).w, Screen::screen_sizes_.at(screen_type).h, 32, 0, 0, 0, 0);
-    // set surface to transparent
-    SDL_FillRect(surface, nullptr, SDL_MapRGBA(surface->format, 0, 0, 0, 128));
-    SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGBA(surface->format, 0, 0, 0, 128));
-
-    process_screens_.insert(std::make_pair(process_screen_id_, ProcessScreen{surface, screen_type}));
-    return process_screen_id_++;
-}
-
-void Graphics::remove_process_screen(int screen_id)
-{
-    SDL_FreeSurface(process_screens_.at(screen_id).surface);
-    process_screens_.erase(screen_id);
-}
-
-void Graphics::process()
-{
-    SDL_Event event;
-    while (!quit_)
-    {
-        while (SDL_PollEvent(&event))
+        if (SDL_Init(SDL_INIT_EVERYTHING & ~SDL_INIT_VIDEO & ~SDL_INIT_AUDIO) < 0)
         {
-            if (event.type == SDL_QUIT)
-            {
-                quit_ = true;
-            }
+            std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
+            return;
         }
+        // Allow SDL2 to attempt anti-aliasing
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
-        // iterate through process_screens_ backward and draw **IN ORDER**
-        for (auto pair = process_screens_.rbegin(); pair != process_screens_.rend(); ++pair)
+        internal::screen_ = SDL_CreateRGBSurface(0, WIDTH, HEIGHT, 32, 0, 0, 0, 0);
+        if (!internal::screen_)
         {
-            ProcessScreen screen = pair->second;
-            switch (screen.screen_type)
+            std::cerr << "Failed to create surface: " << SDL_GetError() << std::endl;
+            SDL_Quit();
+            return;
+        }
+        renderer_ = SDL_CreateSoftwareRenderer(internal::screen_);
+
+        // After SDL2 has been initialized, we let the platform specific renderer init
+        Renderer::initialize();
+
+        int screen2 = add_process_screen(Screen::ScreenType::TOP);
+        // draw rect
+        SDL_Rect rect;
+        rect.x = 20;
+        rect.y = 0;
+        rect.w = 20;
+        rect.h = 20;
+        SDL_FillRect(internal::process_screens_.at(screen2).surface, &rect, SDL_MapRGBA(internal::process_screens_.at(screen2).surface->format, 255, 0, 0, 255));
+
+        // set render target
+        // SDL_SetRenderTarget(renderer_, internal::process_screens_.at(screen2).textu);
+        // SDL_RenderDrawLine(renderer_, 0, 0, 200, 200);
+        int screenId = add_process_screen(Screen::ScreenType::TOP);
+        SDL_Surface *image = IMG_Load("../graphics/timebox.png");
+        SDL_BlitSurface(image, NULL, internal::process_screens_.at(screenId).surface, NULL);
+
+        // internal::event_thread_ = std::thread(internal::event_loop);
+    }
+
+    void loop()
+    {
+        SDL_Event event;
+        while (!internal::quit_)
+        {
+            while (SDL_PollEvent(&event))
             {
-            case Screen::MIMICK_ALL:
-                SDL_BlitSurface(screen.surface, NULL, screen_, &(Screen::screen_sizes_.at(Screen::TOP)));
-            case Screen::MIMICK_SIDES:
-                for (SDL_Rect panel : Screen::sides_)
+                if (event.type == SDL_QUIT)
                 {
-                    SDL_BlitSurface(screen.surface, NULL, screen_, &panel);
+                    internal::quit_ = true;
                 }
-                break;
-            default:
-                SDL_BlitSurface(screen.surface, NULL, screen_, &(Screen::screen_sizes_.at(screen.screen_type)));
             }
-        }
-        Renderer::draw(screen_);
-    }
-}
 
-void Graphics::quit()
-{
-    quit_ = true;
-    SDL_DestroyRenderer(renderer_);
-    SDL_FreeSurface(screen_);
+            // iterate through process_screens_ backward and draw **IN ORDER**
+            for (auto pair = internal::process_screens_.rbegin(); pair != internal::process_screens_.rend(); ++pair)
+            {
+                ProcessScreen screen = pair->second;
+                switch (screen.screen_type)
+                {
+                case Screen::MIMICK_ALL:
+                    SDL_BlitSurface(screen.surface, NULL, internal::screen_, &(Screen::screen_sizes_.at(Screen::TOP)));
+                case Screen::MIMICK_SIDES:
+                    for (SDL_Rect panel : Screen::sides_)
+                    {
+                        SDL_BlitSurface(screen.surface, NULL, internal::screen_, &panel);
+                    }
+                    break;
+                default:
+                    SDL_BlitSurface(screen.surface, NULL, internal::screen_, &(Screen::screen_sizes_.at(screen.screen_type)));
+                }
+            }
+            Renderer::draw(internal::screen_);
+
+            // wait
+            SDL_Delay(10);
+        }
+    }
+
+    void quit()
+    {
+        internal::quit_ = true;
+        SDL_DestroyRenderer(renderer_);
+        SDL_FreeSurface(internal::screen_);
+    }
+
+    int add_process_screen(Screen::ScreenType screen_type)
+    {
+        SDL_Surface *surface = SDL_CreateRGBSurface(0, Screen::screen_sizes_.at(screen_type).w, Screen::screen_sizes_.at(screen_type).h, 32, 0, 0, 0, 0);
+        // set surface to transparent
+        SDL_FillRect(surface, nullptr, SDL_MapRGBA(surface->format, 0, 0, 0, 128));
+        SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGBA(surface->format, 0, 0, 0, 128));
+        SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer_, surface);
+
+        internal::process_screens_.insert(std::make_pair(internal::process_screen_id_, ProcessScreen{surface, texture, screen_type}));
+        return internal::process_screen_id_++;
+    }
+
+    SDL_Texture* get_process_screen_texture(int screen_id)
+    {
+        SDL_SetRenderTarget(renderer_, internal::process_screens_.at(screen_id).texture);
+        return internal::process_screens_.at(screen_id).texture;
+    }
+
+    void remove_process_screen(int screen_id)
+    {
+        SDL_FreeSurface(internal::process_screens_.at(screen_id).surface);
+        internal::process_screens_.erase(screen_id);
+    }
+
 }
 
 // void run()

@@ -27,7 +27,7 @@ namespace events
     void initialize();
     void quit();
 
-    namespace detail
+    namespace internal
     {
         void event_loop();
         extern volatile bool quit_;
