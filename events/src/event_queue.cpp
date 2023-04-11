@@ -1,16 +1,23 @@
 #include "events/event_queue.hpp"
-
+#include <iostream>
 namespace events
 {
+    EQ queue;
     namespace detail
     {
-        volatile bool quit_ = false;
+        std::atomic<bool> quit_(false);
         std::thread event_thread_;
 
         void event_loop()
         {
-            while (!queue.waitFor(std::chrono::milliseconds(10)) && !quit_)
+            for (;;)
             {
+                while (!queue.waitFor(std::chrono::milliseconds(10)) && !quit_.load());
+                if (quit_.load())
+                {
+                    break;
+                }
+
                 queue.process();
             }
         }
@@ -23,7 +30,7 @@ namespace events
 
     void quit()
     {
-        detail::quit_ = true;
+        detail::quit_.store(true);
         if (detail::event_thread_.joinable())
         {
             detail::event_thread_.join();

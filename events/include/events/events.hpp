@@ -12,8 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
-#include <list>
-#include <array>
 
 enum class EventType
 {
@@ -26,8 +24,8 @@ enum class EventType
     time_elapsed,
     stop,
     toggle_visibility,
-    add_to_screen_manager,
-    remove_from_screen_manager,
+    add_to_screen,
+    remove_from_screen,
     audio_frame_received,
     socket_subscribe,
     socket_unsubscribe,
@@ -59,8 +57,8 @@ EVENTPP_MAKE_EVENT(EditProcessEvent, Event, EventType::edit_process, (std::strin
 EVENTPP_MAKE_EVENT(DeleteProcessEvent, Event, EventType::delete_process, (int, getId, setId));
 
 EVENTPP_MAKE_EVENT(ToggleVisibilityEvent, Event, EventType::toggle_visibility, (int, getProcessId, setProcessId), (int, getIsVisible, setIsVisible));
-EVENTPP_MAKE_EVENT(AddToScreenManagerEvent, Event, EventType::add_to_screen_manager, (int, getProcessId, setProcessId), (int, getProcessType, setProcessType), (int, getCanvasWindowType, setCanvasWindowType));
-EVENTPP_MAKE_EVENT(RemoveFromScreenManagerEvent, Event, EventType::remove_from_screen_manager, (int, getProcessId, setProcessId));
+EVENTPP_MAKE_EVENT(AddToScreenEvent, Event, EventType::add_to_screen, (int, getProcessId, setProcessId), (int, getProcessType, setProcessType), (int, getCanvasWindowType, setCanvasWindowType));
+EVENTPP_MAKE_EVENT(RemoveFromScreenEvent, Event, EventType::remove_from_screen, (int, getProcessId, setProcessId));
 
 EVENTPP_MAKE_EVENT(AudioFrameReceivedEvent, Event, EventType::audio_frame_received, (int, getId, setId));
 

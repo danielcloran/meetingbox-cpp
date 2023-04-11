@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 # Add the main executable
-add_executable(main src/main.cpp)
+add_executable(main src/main.cpp src/utils/interrupt_timer.cpp)
 
 # Add vcpkg toolchain file to enable vcpkg packages
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/libs/vcpkg/scripts/buildsystems/vcpkg.cmake)
@@ -38,5 +38,6 @@ target_link_libraries(main PRIVATE
 
 target_include_directories(main PRIVATE
     "${CMAKE_SOURCE_DIR}"
+    "${CMAKE_SOURCE_DIR}/include"
     ${VCPKG_INCLUDE}
 )

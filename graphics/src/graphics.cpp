@@ -6,7 +6,7 @@ namespace graphics
 
     namespace internal
     {
-        volatile bool quit_ = false;
+        std::atomic<bool> quit_(false);
         int process_screen_id_ = 0;
         std::map<int, ProcessScreen> process_screens_;
         SDL_Surface *screen_ = nullptr;
@@ -36,42 +36,44 @@ namespace graphics
 
         int screen2 = add_process_screen(Screen::ScreenType::TOP);
         // draw rect
-        SDL_Rect rect;
-        rect.x = 20;
-        rect.y = 0;
-        rect.w = 20;
-        rect.h = 20;
-        SDL_FillRect(internal::process_screens_.at(screen2).surface, &rect, SDL_MapRGBA(internal::process_screens_.at(screen2).surface->format, 255, 0, 0, 255));
+        // SDL_Rect rect;
+        // rect.x = 20;
+        // rect.y = 0;
+        // rect.w = 20;
+        // rect.h = 20;
+        // SDL_FillRect(internal::process_screens_.at(screen2).surface, &rect, SDL_MapRGBA(internal::process_screens_.at(screen2).surface->format, 255, 0, 0, 255));
+
+
+        // fill the renderer_ with blue
+        SDL_SetRenderDrawColor(renderer_, 0, 220, 250, 255);
+        SDL_RenderClear(renderer_);
 
         // set render target
         // SDL_SetRenderTarget(renderer_, internal::process_screens_.at(screen2).textu);
         // SDL_RenderDrawLine(renderer_, 0, 0, 200, 200);
-        int screenId = add_process_screen(Screen::ScreenType::TOP);
-        SDL_Renderer *rend = get_process_renderer(screenId);
-        // load image to renderer
-        SDL_Texture *tex = IMG_LoadTexture(rend, "../graphics/timebox.png");
-        SDL_RenderCopy(rend, tex, NULL, NULL);
-        SDL_SetRenderDrawColor(rend, 255, 0, 0, 255);
-        SDL_RenderDrawLine(rend, 0, 0, 200, 200);
+        // int screenId = add_process_screen(Screen::ScreenType::TOP);
+        // SDL_Renderer *rend = get_process_renderer(screenId);
+        // // load image to renderer
+        // SDL_Texture *tex = IMG_LoadTexture(rend, "../graphics/timebox.png");
+        // SDL_RenderCopy(rend, tex, NULL, NULL);
+        // SDL_SetRenderDrawColor(rend, 255, 0, 0, 255);
+        // SDL_RenderDrawLine(rend, 0, 0, 200, 200);
+        // SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
 
-        // SDL_RenderCopy(rend, texture, NULL, NULL);
-
-        // SDL_Surface *image = IMG_Load("../graphics/timebox.png");
-        // SDL_BlitSurface(image, NULL, internal::process_screens_.at(screenId).surface, NULL);
-
-        // internal::event_thread_ = std::thread(internal::event_loop);
+        // SDL_RenderDrawPointF(rend, 2.2, 20.8);
+        // // SDL_RenderClear(rend);
     }
 
     void loop()
     {
         SDL_Event event;
-        while (!internal::quit_)
+        while (!internal::quit_.load())
         {
             while (SDL_PollEvent(&event))
             {
                 if (event.type == SDL_QUIT)
                 {
-                    internal::quit_ = true;
+                    internal::quit_.store(true);
                 }
             }
 
@@ -101,7 +103,7 @@ namespace graphics
 
     void quit()
     {
-        internal::quit_ = true;
+        internal::quit_.store(true);
         SDL_DestroyRenderer(renderer_);
         SDL_FreeSurface(internal::screen_);
     }
@@ -120,12 +122,13 @@ namespace graphics
     SDL_Renderer *get_process_renderer(int screen_id)
     {
         SDL_Renderer *rend = internal::process_screens_.at(screen_id).renderer;
-        // SDL_RenderClear(rend);
+
         return rend;
     }
 
     void remove_process_screen(int screen_id)
     {
+        SDL_DestroyRenderer(internal::process_screens_.at(screen_id).renderer);
         SDL_FreeSurface(internal::process_screens_.at(screen_id).surface);
         internal::process_screens_.erase(screen_id);
     }

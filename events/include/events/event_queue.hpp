@@ -22,7 +22,9 @@ namespace events
         }
     };
     using EQ = eventpp::EventQueue<EventType, void(const EventPointer &), EventPolicy>;
-    EQ queue;
+    using ScopedRemover = eventpp::ScopedRemover<EQ>;
+
+    extern EQ queue;
 
     void initialize();
     void quit();
@@ -30,7 +32,7 @@ namespace events
     namespace internal
     {
         void event_loop();
-        extern volatile bool quit_;
+        extern std::atomic<bool> quit_;
         extern std::thread event_thread_;
     }
 }

@@ -74,7 +74,7 @@ namespace graphics
     namespace internal
     {
         extern SDL_Surface *screen_;
-        extern volatile bool quit_;
+        extern std::atomic<bool> quit_;
 
         extern int process_screen_id_;
         extern std::map<int, ProcessScreen> process_screens_;

@@ -5,6 +5,8 @@
 #include "graphics/graphics.hpp"
 #include "events/event_queue.hpp"
 
+#include "utils/interrupt_timer.hpp"
+
 void interruptHandler(int dummy)
 {
     std::cout << "\nStopping Program" << std::endl;
@@ -15,40 +17,16 @@ int main()
 {
     signal(SIGINT, interruptHandler);
 
-
     events::initialize();
 
+    std::thread timerThread(&InterruptTimer::update, new InterruptTimer());
     graphics::initialize();
+
     graphics::loop(); // blocking
+    events::queue.dispatch(std::make_unique<StopEvent>());
 
+    timerThread.join();
     events::quit();
-
-    // Start the process manager
-    // ProcessManager::start();
-
-    // Set the flag to exit the task thread
-    // should_exit.store(true);
-    // event_thread.join();
-    //   std::atomic<bool> should_exit(false);
-    // std::thread event_thread(event_loop, std::ref(should_exit));
-
-    // queue.appendListener(EventType::stop, [](const EventPointer &event)
-    //                      { std::cout << "Received stop!" << std::endl; });
-    // // Wait for the task thread to finish
-
-    // queue.dispatch(std::make_unique<StopEvent>());
-
-    // Stop the process manager
-    // ProcessManager::stop();
-
-    // // Shutdown the graphics subsystem
-    // Graphics::shutdown();
-
-    // // Stop the event loop
-    // EventLoop::stop();
-
-    // // Shutdown the audio subsystem
-    // Audio::shutdown();
 
     return 0;
 }
