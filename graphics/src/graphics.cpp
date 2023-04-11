@@ -34,7 +34,7 @@ namespace graphics
         // After SDL2 has been initialized, we let the platform specific renderer init
         Renderer::initialize();
 
-        int screen2 = add_process_screen(Screen::ScreenType::TOP);
+
         // draw rect
         // SDL_Rect rect;
         // rect.x = 20;
@@ -45,8 +45,19 @@ namespace graphics
 
 
         // fill the renderer_ with blue
-        SDL_SetRenderDrawColor(renderer_, 130, 70, 140, 210);
-        SDL_RenderClear(renderer_);
+        // SDL_SetRenderDrawColor(renderer_, 130, 70, 140, 210);
+        // SDL_RenderClear(renderer_);
+
+        // load the timebox.png
+        int screen2 = add_process_screen(Screen::ScreenType::MIMICK_ALL);
+        SDL_Texture *tex = IMG_LoadTexture(internal::process_screens_.at(screen2).renderer, "../graphics/timebox.png");
+        // copy to surface
+        SDL_RenderCopy(internal::process_screens_.at(screen2).renderer, tex, NULL, &Screen::screen_sizes_.at(internal::process_screens_.at(screen2).screen_type));
+
+
+
+
+        // SDL_RenderCopy(internal::process_screens_.at(screen2).renderer, tex, NULL, NULL);
 
         // set render target
         // SDL_SetRenderTarget(renderer_, internal::process_screens_.at(screen2).textu);
