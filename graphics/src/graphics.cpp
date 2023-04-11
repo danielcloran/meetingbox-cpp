@@ -49,7 +49,7 @@ namespace graphics
         // SDL_RenderClear(renderer_);
 
         // load the timebox.png
-        int screen2 = add_process_screen(Screen::ScreenType::MIMICK_ALL);
+        int screen2 = add_process_screen(Screen::ScreenType::MIMICK_SIDES);
         SDL_Texture *tex = IMG_LoadTexture(internal::process_screens_.at(screen2).renderer, "../graphics/timebox.png");
         // copy to surface
         SDL_RenderCopy(internal::process_screens_.at(screen2).renderer, tex, NULL, &Screen::screen_sizes_.at(internal::process_screens_.at(screen2).screen_type));
