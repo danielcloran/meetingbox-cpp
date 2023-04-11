@@ -45,7 +45,7 @@ namespace graphics
 
 
         // fill the renderer_ with blue
-        SDL_SetRenderDrawColor(renderer_, 200, 220, 0, 200);
+        SDL_SetRenderDrawColor(renderer_, 130, 70, 140, 210);
         SDL_RenderClear(renderer_);
 
         // set render target
