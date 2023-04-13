@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <signal.h>
 #include <array>
+#include <algorithm>
+
 
 using namespace rgb_matrix;
 
