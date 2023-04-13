@@ -71,6 +71,7 @@ void Renderer::draw(SDL_Surface *surface)
     // Swap buffers
     currentBuffer = !currentBuffer;
 
+    std::cout << "Current buffer: " << currentBuffer << std::endl;
     // Set every pixel in canvas based on framebuffer, size is 64x64
     SDL_LockSurface(surface);
     std::copy((uint32_t *)surface->pixels, (uint32_t *)surface->pixels + (WIDTH * HEIGHT * (currentBuffer + 1)), pixelData[currentBuffer].begin());
