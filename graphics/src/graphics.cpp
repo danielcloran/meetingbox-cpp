@@ -101,7 +101,7 @@ namespace graphics
             currentFrame = (currentFrame + 1) % gif->count;
             // make tex from frame
             SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer_, gif->frames[currentFrame]);
-            SDL_RenderCopy(renderer_, tex, NULL, NULL);
+            SDL_RenderCopy(renderer_, tex, NULL, &Screen::screen_sizes_.at(Screen::TOP));
 
 
 
