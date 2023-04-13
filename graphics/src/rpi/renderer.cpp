@@ -84,8 +84,8 @@ void Renderer::draw(SDL_Surface *surface)
                    { return a ^ b; });
 
     // off_screen_canvas_->Clear();
-    static bool done = false;
-    if (!done)
+    static int done = 0;
+    if (done != 2)
     {
         for (int x = 0; x < WIDTH; x++)
         {
@@ -95,7 +95,7 @@ void Renderer::draw(SDL_Surface *surface)
                 off_screen_canvas_->SetPixel(x, y, get_red(maskPixelData[index]), get_green(maskPixelData[index + 1]), get_blue(maskPixelData[index + 2]));
             }
         }
-        done = true;
+        done += 1;
     }
 
     off_screen_canvas_ = canvas->SwapOnVSync(off_screen_canvas_);
