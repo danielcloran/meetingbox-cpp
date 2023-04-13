@@ -84,7 +84,8 @@ void Renderer::draw(SDL_Surface *surface)
                    { return a ^ b; });
 
     // off_screen_canvas_->Clear();
-    static bool done = false if (!done)
+    static bool done = false
+    if (!done)
     {
         for (int x = 0; x < WIDTH; x++)
         {
