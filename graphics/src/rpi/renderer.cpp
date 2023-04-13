@@ -87,7 +87,7 @@ void Renderer::draw(SDL_Surface *surface)
         for (int y = 0; y < HEIGHT; y++)
         {
             int index = (x + y * WIDTH);
-            off_screen_canvas_->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index+1]), get_blue(pixelData[currentBuffer][index+2]));
+            off_screen_canvas_->SetPixel(x, y, get_blue(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index+1]), get_red(pixelData[currentBuffer][index+2]));
         }
     }
 
