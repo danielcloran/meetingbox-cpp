@@ -18,19 +18,16 @@ std::array<std::array<uint32_t, WIDTH * HEIGHT>, 2> pixelData;
 // std::array<Uint8, WIDTH * HEIGHT * 4> priorPixelData;
 // std::array<Uint8, WIDTH * HEIGHT * 4> maskPixelData;
 
-uint8_t get_red(uint32_t color)
-{
-    return (color >> 24) & 0xFF;
-}
-
-uint8_t get_green(uint32_t color)
-{
+uint8_t get_red(uint32_t color) {
     return (color >> 16) & 0xFF;
 }
 
-uint8_t get_blue(uint32_t color)
-{
+uint8_t get_green(uint32_t color) {
     return (color >> 8) & 0xFF;
+}
+
+uint8_t get_blue(uint32_t color) {
+    return color & 0xFF;
 }
 
 void Renderer::initialize()
@@ -90,7 +87,7 @@ void Renderer::draw(SDL_Surface *surface)
         for (int y = 0; y < HEIGHT; y++)
         {
             int index = (x + y * WIDTH);
-            off_screen_canvas_->SetPixel(x, y, get_green(pixelData[currentBuffer][index]), get_blue(pixelData[currentBuffer][index+1]), get_red(pixelData[currentBuffer][index+2]));
+            off_screen_canvas_->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index+1]), get_blue(pixelData[currentBuffer][index+2]));
         }
     }
 
