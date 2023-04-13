@@ -57,6 +57,10 @@ void Renderer::initialize()
     canvas->ApplyPixelMapper(new CustomMapper());
 
     off_screen_canvas_ = canvas->CreateFrameCanvas();
+
+    // Set every pixel in the two buffers to black
+    std::fill(pixelData[0].begin(), pixelData[0].end(), 0);
+    std::fill(pixelData[1].begin(), pixelData[1].end(), 0);
 }
 
 void Renderer::draw(SDL_Surface *surface)
