@@ -116,8 +116,8 @@ void TimerProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long timeEla
             SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
             SDL_RenderDrawLine(renderer, 0, otherRowsY, size.w, otherRowsY);
         }
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderDrawLine(renderer, 0, whatRow - 1, size.w, whatRow - 1);
+        // SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        // SDL_RenderDrawLine(renderer, 0, whatRow - 1, size.w, whatRow - 1);
     }
 }
 
