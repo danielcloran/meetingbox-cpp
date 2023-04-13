@@ -16,7 +16,7 @@
 #include "events/event_queue.hpp"
 
 // Define TRANSPARENT as a  Uint32 color
-#define TRANSPARENT 0x00000000
+#define TRANSPARENT 0x00000080
 // #define TRANSPARENT SDL_Color(0, 0, 0, 128)
 class Screen
 {
