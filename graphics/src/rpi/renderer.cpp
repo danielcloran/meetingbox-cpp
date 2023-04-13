@@ -87,7 +87,7 @@ void Renderer::draw(SDL_Surface *surface)
         for (int y = 0; y < HEIGHT; y++)
         {
             int index = (x + y * WIDTH);
-            Color current_pixel(get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index]), get_blue(pixelData[currentBuffer][index]));
+            Color current_pixel = Color(get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index]), get_blue(pixelData[currentBuffer][index]));
             Color offscreen_pixel = get_canvas_pixel(off_screen_canvas_, x, y);
 
             if (current_pixel != offscreen_pixel)
