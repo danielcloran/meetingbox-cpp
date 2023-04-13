@@ -15,6 +15,8 @@ using namespace rgb_matrix;
 RGBMatrix *canvas;
 FrameCanvas *off_screen_canvas_;
 std::array<Uint8, WIDTH * HEIGHT * 4> pixelData;
+std::array<Uint8, WIDTH * HEIGHT * 4> priorPixelData;
+std::array<Uint8, WIDTH * HEIGHT * 4> maskPixelData;
 
 void Renderer::initialize()
 {
@@ -45,10 +47,15 @@ void Renderer::initialize()
 
 void Renderer::draw(SDL_Surface *surface)
 {
+    // copy pixelDatat to priorPixelData
+    std::copy(pixelData.begin(), pixelData.end(), priorPixelData.begin());
     // Set every pixel in canvas based on framebuffer, size is 64x64
     SDL_LockSurface(surface);
     std::copy((Uint8 *)surface->pixels,(Uint8 *)surface->pixels + WIDTH * HEIGHT * 4, pixelData.begin());
     SDL_UnlockSurface(surface);
+
+    // mask the different pixels to pixelMask
+    std::transform(pixelData.begin(), pixelData.end(), priorPixelData.begin(), maskPixelData.begin(), [](Uint8 a, Uint8 b) { return a - b; });
 
     off_screen_canvas_->Clear();
 
@@ -57,7 +64,7 @@ void Renderer::draw(SDL_Surface *surface)
         for (int y = 0; y < HEIGHT; y++)
         {
             int index = (x + y * WIDTH) * 4;
-            off_screen_canvas_->SetPixel(x, y, pixelData[index], pixelData[index + 1], pixelData[index + 2]);
+            off_screen_canvas_->SetPixel(x, y, maskPixelData[index], maskPixelData[index + 1], maskPixelData[index + 2]);
         }
     }
 
