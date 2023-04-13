@@ -65,10 +65,10 @@ void Renderer::initialize()
     std::fill(pixelData[1].begin(), pixelData[1].end(), 0);
 }
 
-RGBMatrix::Color get_canvas_pixel(Canvas *canvas, int x, int y) {
+Color get_canvas_pixel(Canvas *canvas, int x, int y) {
     uint8_t r, g, b;
     canvas->GetPixel(x, y, &r, &g, &b);
-    return RGBMatrix::Color(r, g, b);
+    return Color(r, g, b);
 }
 
 void Renderer::draw(SDL_Surface *surface)
@@ -87,8 +87,8 @@ void Renderer::draw(SDL_Surface *surface)
         for (int y = 0; y < HEIGHT; y++)
         {
             int index = (x + y * WIDTH);
-            RGBMatrix::Color current_pixel = RGBMatrix::Color(get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index]), get_blue(pixelData[currentBuffer][index]));
-            RGBMatrix::Color offscreen_pixel = get_canvas_pixel(off_screen_canvas_, x, y);
+            Color current_pixel = Color(get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index]), get_blue(pixelData[currentBuffer][index]));
+            Color offscreen_pixel = get_canvas_pixel(off_screen_canvas_, x, y);
 
             if (current_pixel != offscreen_pixel)
             {
