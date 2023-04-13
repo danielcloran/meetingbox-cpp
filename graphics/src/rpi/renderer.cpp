@@ -1,7 +1,6 @@
 #include "graphics/renderer.hpp"
 #include "graphics/rpi/pixel_mapper.hpp"
 
-
 #include "led-matrix.h"
 
 #include <unistd.h>
@@ -11,7 +10,6 @@
 #include <array>
 #include <algorithm>
 
-
 using namespace rgb_matrix;
 
 RGBMatrix *canvas;
@@ -20,15 +18,18 @@ std::array<std::array<uint32_t, WIDTH * HEIGHT>, 2> pixelData;
 // std::array<Uint8, WIDTH * HEIGHT * 4> priorPixelData;
 // std::array<Uint8, WIDTH * HEIGHT * 4> maskPixelData;
 
-uint8_t get_red(uint32_t color) {
+uint8_t get_red(uint32_t color)
+{
     return (color >> 24) & 0xFF;
 }
 
-uint8_t get_green(uint32_t color) {
+uint8_t get_green(uint32_t color)
+{
     return (color >> 16) & 0xFF;
 }
 
-uint8_t get_blue(uint32_t color) {
+uint8_t get_blue(uint32_t color)
+{
     return (color >> 8) & 0xFF;
 }
 
@@ -50,7 +51,8 @@ void Renderer::initialize()
     runtime_opt.gpio_slowdown = 4;
 
     canvas = CreateMatrixFromOptions(defaults, runtime_opt);
-    if (canvas == NULL) {
+    if (canvas == NULL)
+    {
         std::cerr << "Failed to create RGBMatrix canvas" << std::endl;
         return;
     }
@@ -71,7 +73,7 @@ void Renderer::draw(SDL_Surface *surface)
 
     // Set every pixel in canvas based on framebuffer, size is 64x64
     SDL_LockSurface(surface);
-    std::copy((uint32_t *)surface->pixels,(uint32_t *)surface->pixels + WIDTH * HEIGHT, pixelData[currentBuffer].begin());
+    std::copy((uint32_t *)surface->pixels, (uint32_t *)surface->pixels + (WIDTH * HEIGHT * (currentBuffer + 1)), pixelData[currentBuffer].begin());
     SDL_UnlockSurface(surface);
 
     // mask the different pixels to pixelMask
@@ -92,6 +94,7 @@ void Renderer::draw(SDL_Surface *surface)
     off_screen_canvas_ = canvas->SwapOnVSync(off_screen_canvas_);
 }
 
-void Renderer::quit() {
+void Renderer::quit()
+{
     delete canvas;
 }
