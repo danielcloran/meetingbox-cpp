@@ -130,7 +130,7 @@ void Renderer::draw(SDL_Surface *surface)
             if (pixelData[currentBuffer][index] != pixelData[!currentBuffer][index])
             {
                 canvas->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index]), get_blue(pixelData[currentBuffer][index]));
-                std::cout << "Pixel changed" << std::endl;
+                std::cout << "Pixel changed (x,y):" << x << "," << y << std::endl;
             }
             // int index = (x + y * WIDTH) * 4;
 
