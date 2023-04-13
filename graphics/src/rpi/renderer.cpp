@@ -71,28 +71,28 @@ void Renderer::draw(SDL_Surface *surface)
     currentBuffer = !currentBuffer;
 
     // Set every pixel in canvas based on framebuffer, size is 64x64
-    // SDL_LockSurface(surface);
-    // std::copy((uint32_t *)surface->pixels, (uint32_t *)surface->pixels + (WIDTH * HEIGHT), pixelData[currentBuffer].begin());
-    // SDL_UnlockSurface(surface);
+    SDL_LockSurface(surface);
+    std::copy((uint32_t *)surface->pixels, (uint32_t *)surface->pixels + (WIDTH * HEIGHT), pixelData[currentBuffer].begin());
+    SDL_UnlockSurface(surface);
 
-    uint8_t *pixels = (uint8_t *)surface->pixels;
+    // uint8_t *pixels = (uint8_t *)surface->pixels;
 
-    off_screen_canvas_->Clear();
+    // off_screen_canvas_->Clear();
 
     for (int x = 0; x < WIDTH; x++)
     {
         for (int y = 0; y < HEIGHT; y++)
         {
-            // int index = x + y * WIDTH;
-            // if (pixelData[currentBuffer][index] != pixelData[!currentBuffer][index])
-            // {
-            //     canvas->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index]), get_blue(pixelData[currentBuffer][index]));
-            // }
-            int index = (x + y * WIDTH) * 4;
-            off_screen_canvas_->SetPixel(x, y, pixels[index], pixels[index + 1], pixels[index + 2]);
+            int index = x + y * WIDTH;
+            if (pixelData[currentBuffer][index] != pixelData[!currentBuffer][index])
+            {
+                canvas->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index]), get_blue(pixelData[currentBuffer][index]));
+            }
+            // int index = (x + y * WIDTH) * 4;
+            // off_screen_canvas_->SetPixel(x, y, pixels[index], pixels[index + 1], pixels[index + 2]);
         }
     }
-    off_screen_canvas_ = canvas->SwapOnVSync(off_screen_canvas_);
+    // off_screen_canvas_ = canvas->SwapOnVSync(off_screen_canvas_);
 }
 
 void Renderer::quit()
