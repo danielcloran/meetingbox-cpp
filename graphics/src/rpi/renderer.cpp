@@ -59,7 +59,7 @@ void Renderer::draw(SDL_Surface *surface)
     // mask the different pixels to pixelMask
     std::transform(pixelData.begin(), pixelData.end(), priorPixelData.begin(), maskPixelData.begin(), [](Uint8 a, Uint8 b) { return a - b; });
 
-    off_screen_canvas_->Clear();
+    // off_screen_canvas_->Clear();
 
     for (int x = 0; x < WIDTH; x++)
     {
