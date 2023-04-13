@@ -77,14 +77,18 @@ void Renderer::draw(SDL_Surface *surface)
     std::copy((uint32_t *)surface->pixels, (uint32_t *)surface->pixels + (WIDTH * HEIGHT), pixelData[currentBuffer].begin());
     SDL_UnlockSurface(surface);
 
-    off_screen_canvas_->Clear();
+    // off_screen_canvas_->Clear();
 
     for (int x = 0; x < WIDTH; x++)
     {
         for (int y = 0; y < HEIGHT; y++)
         {
             int index = (x + y * WIDTH);
-            off_screen_canvas_->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index + 1]), get_blue(pixelData[currentBuffer][index + 2]));
+            if (pixelData[currentBuffer][index] != pixelData[!currentBuffer][index])
+            {
+                off_screen_canvas_->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index]), get_blue(pixelData[currentBuffer][index]));
+            }
+            // off_screen_canvas_->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index + 1]), get_blue(pixelData[currentBuffer][index + 2]));
         }
     }
 
