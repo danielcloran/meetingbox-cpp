@@ -16,9 +16,21 @@ using namespace rgb_matrix;
 
 RGBMatrix *canvas;
 FrameCanvas *off_screen_canvas_;
-std::array<Uint8, WIDTH * HEIGHT * 4> pixelData;
-std::array<Uint8, WIDTH * HEIGHT * 4> priorPixelData;
-std::array<Uint8, WIDTH * HEIGHT * 4> maskPixelData;
+std::array<std::array<uint32_t, WIDTH * HEIGHT>, 2> pixelData;
+// std::array<Uint8, WIDTH * HEIGHT * 4> priorPixelData;
+// std::array<Uint8, WIDTH * HEIGHT * 4> maskPixelData;
+
+uint8_t get_red(uint32_t color) {
+    return (color >> 24) & 0xFF;
+}
+
+uint8_t get_green(uint32_t color) {
+    return (color >> 16) & 0xFF;
+}
+
+uint8_t get_blue(uint32_t color) {
+    return (color >> 8) & 0xFF;
+}
 
 void Renderer::initialize()
 {
@@ -49,15 +61,18 @@ void Renderer::initialize()
 
 void Renderer::draw(SDL_Surface *surface)
 {
-    // copy pixelDatat to priorPixelData
-    std::copy(pixelData.begin(), pixelData.end(), priorPixelData.begin());
+    static bool currentBuffer = 0;
+    // Swap buffers
+    currentBuffer = !currentBuffer;
+
     // Set every pixel in canvas based on framebuffer, size is 64x64
     SDL_LockSurface(surface);
-    std::copy((Uint8 *)surface->pixels,(Uint8 *)surface->pixels + WIDTH * HEIGHT * 4, pixelData.begin());
+    std::copy((uint32_t *)surface->pixels,(uint32_t *)surface->pixels + WIDTH * HEIGHT * 4, pixelData[currentBuffer].begin());
     SDL_UnlockSurface(surface);
 
     // mask the different pixels to pixelMask
-    std::transform(pixelData.begin(), pixelData.end(), priorPixelData.begin(), maskPixelData.begin(), [](Uint8 a, Uint8 b) { return a - b; });
+
+    // std::transform(pixelData.begin(), pixelData.end(), priorPixelData.begin(), maskPixelData.begin(), [](Uint8 a, Uint8 b) { return a - b; });
 
     // off_screen_canvas_->Clear();
 
@@ -65,8 +80,8 @@ void Renderer::draw(SDL_Surface *surface)
     {
         for (int y = 0; y < HEIGHT; y++)
         {
-            int index = (x + y * WIDTH) * 4;
-            off_screen_canvas_->SetPixel(x, y, maskPixelData[index], maskPixelData[index + 1], maskPixelData[index + 2]);
+            int index = (x + y * WIDTH);
+            off_screen_canvas_->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index]), get_blue(pixelData[currentBuffer][index]));
         }
     }
 
