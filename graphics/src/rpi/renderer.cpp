@@ -133,11 +133,11 @@ void Renderer::draw(SDL_Surface *surface)
             //     off_screen_canvas_->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index]), get_blue(pixelData[currentBuffer][index]));
             // }
             int index = (x + y * WIDTH) * 4;
-            off_screen_canvas_->SetPixel(x, y, pixels[index], pixels[index + 1], pixels[index + 2]);
+            canvas->SetPixel(x, y, pixels[index], pixels[index + 1], pixels[index + 2]);
         }
     }
-
-    off_screen_canvas_ = canvas->SwapOnVSync(off_screen_canvas_);
+    // canvas->
+    // off_screen_canvas_ = canvas->SwapOnVSync(off_screen_canvas_);
     // std::cout << off_screen_canvas_ << std::endl;
 }
 
