@@ -95,7 +95,7 @@ void TimerProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long timeEla
     // std::cout << "Time Remaining: " << timeRemaining << std::endl;
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
+    SDL_RenderFillRect(renderer, NULL);
 
     int fakeBrightness = 255;
     int numLeds = (size.h + 1) * (size.h + 1); // TODO: MATH needs some work here
