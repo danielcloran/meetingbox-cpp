@@ -70,9 +70,9 @@ void Renderer::draw(SDL_Surface *surface)
     currentBuffer = !currentBuffer;
 
     // Set every pixel in canvas based on framebuffer, size is 64x64
-    SDL_LockSurface(surface);
-    std::copy((uint32_t *)surface->pixels,(uint32_t *)surface->pixels + WIDTH * HEIGHT * 4, pixelData[currentBuffer].begin());
-    SDL_UnlockSurface(surface);
+    // SDL_LockSurface(surface);
+    // std::copy((uint32_t *)surface->pixels,(uint32_t *)surface->pixels + WIDTH * HEIGHT * 4, pixelData[currentBuffer].begin());
+    // SDL_UnlockSurface(surface);
 
     // mask the different pixels to pixelMask
 
@@ -80,14 +80,14 @@ void Renderer::draw(SDL_Surface *surface)
 
     // off_screen_canvas_->Clear();
 
-    for (int x = 0; x < WIDTH; x++)
-    {
-        for (int y = 0; y < HEIGHT; y++)
-        {
-            int index = ((x + y) * WIDTH);
-            off_screen_canvas_->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index]), get_blue(pixelData[currentBuffer][index]));
-        }
-    }
+    // for (int x = 0; x < WIDTH; x++)
+    // {
+    //     for (int y = 0; y < HEIGHT; y++)
+    //     {
+    //         int index = ((x + y) * WIDTH);
+    //         off_screen_canvas_->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index]), get_blue(pixelData[currentBuffer][index]));
+    //     }
+    // }
 
     off_screen_canvas_ = canvas->SwapOnVSync(off_screen_canvas_);
 }
