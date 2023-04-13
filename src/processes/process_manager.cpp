@@ -63,7 +63,7 @@ void ProcessManager::handleCreateProcessEvent(events::EventPointer theEvent) {
     ProcessType processType = static_cast<ProcessType>(createEvent->getProcessType());
     Json::Value info = createEvent->getInfo();
 
-    int screenId = graphics::add_process_screen(Screen::TOP);
+    int screenId = graphics::add_process_screen(Screen::MIMICK_SIDES);
     std::shared_ptr<Process> newProcess = create_process(processType, processId, screenId, info);
 
     processList[++processId] = newProcess;
