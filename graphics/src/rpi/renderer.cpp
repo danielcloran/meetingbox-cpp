@@ -16,7 +16,7 @@ RGBMatrix *canvas;
 FrameCanvas *off_screen_canvas_;
 std::array<std::array<uint32_t, WIDTH * HEIGHT>, 2> pixelData;
 // std::array<Uint8, WIDTH * HEIGHT * 4> priorPixelData;
-// std::array<Uint8, WIDTH * HEIGHT * 4> maskPixelData;
+std::array<uint32_t, WIDTH * HEIGHT> maskPixelData;
 
 uint8_t get_red(uint32_t color) {
     return color & 0xFF;
