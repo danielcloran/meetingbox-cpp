@@ -18,15 +18,18 @@ std::array<std::array<uint32_t, WIDTH * HEIGHT>, 2> pixelData;
 // std::array<Uint8, WIDTH * HEIGHT * 4> priorPixelData;
 std::array<uint32_t, WIDTH * HEIGHT> maskPixelData;
 
-uint8_t get_red(uint32_t color) {
+uint8_t get_red(uint32_t color)
+{
     return color & 0xFF;
 }
 
-uint8_t get_green(uint32_t color) {
+uint8_t get_green(uint32_t color)
+{
     return (color >> 8) & 0xFF;
 }
 
-uint8_t get_blue(uint32_t color) {
+uint8_t get_blue(uint32_t color)
+{
     return (color >> 16) & 0xFF;
 }
 
@@ -77,17 +80,21 @@ void Renderer::draw(SDL_Surface *surface)
     std::cout << "Post copy" << std::endl;
 
     // mask the different pixels to pixelMask
-    std::transform(pixelData[currentBuffer].begin(), pixelData[currentBuffer].end(), pixelData[!currentBuffer].begin(), maskPixelData.begin(), [](uint32_t a, uint32_t b) { return a ^ b; });
+    std::transform(pixelData[currentBuffer].begin(), pixelData[currentBuffer].end(), pixelData[!currentBuffer].begin(), maskPixelData.begin(), [](uint32_t a, uint32_t b)
+                   { return a ^ b; });
 
     // off_screen_canvas_->Clear();
-
-    for (int x = 0; x < WIDTH; x++)
+    static bool done = false if (!done)
     {
-        for (int y = 0; y < HEIGHT; y++)
+        for (int x = 0; x < WIDTH; x++)
         {
-            int index = (x + y * WIDTH);
-            off_screen_canvas_->SetPixel(x, y, get_red(maskPixelData[index]), get_green(maskPixelData[index+1]), get_blue(maskPixelData[index+2]));
+            for (int y = 0; y < HEIGHT; y++)
+            {
+                int index = (x + y * WIDTH);
+                off_screen_canvas_->SetPixel(x, y, get_red(maskPixelData[index]), get_green(maskPixelData[index + 1]), get_blue(maskPixelData[index + 2]));
+            }
         }
+        done = true;
     }
 
     off_screen_canvas_ = canvas->SwapOnVSync(off_screen_canvas_);
