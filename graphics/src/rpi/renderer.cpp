@@ -78,19 +78,14 @@ void Renderer::draw(SDL_Surface *surface)
     SDL_UnlockSurface(surface);
 
     off_screen_canvas_->Clear();
-    static int done = 0;
-    if (done != 60)
+
+    for (int x = 0; x < WIDTH; x++)
     {
-        for (int x = 0; x < WIDTH; x++)
+        for (int y = 0; y < HEIGHT; y++)
         {
-            for (int y = 0; y < HEIGHT; y++)
-            {
-                int index = (x + y * WIDTH);
-                off_screen_canvas_->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index + 1]), get_blue(pixelData[currentBuffer][index + 2]));
-            }
+            int index = (x + y * WIDTH);
+            off_screen_canvas_->SetPixel(x, y, get_red(pixelData[currentBuffer][index]), get_green(pixelData[currentBuffer][index + 1]), get_blue(pixelData[currentBuffer][index + 2]));
         }
-        std::cout << "Done: " << done << std::endl;
-        done++;
     }
 
     off_screen_canvas_ = canvas->SwapOnVSync(off_screen_canvas_);
