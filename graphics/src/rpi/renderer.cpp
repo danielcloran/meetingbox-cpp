@@ -77,8 +77,7 @@ void Renderer::draw(SDL_Surface *surface)
     std::cout << "Post copy" << std::endl;
 
     // mask the different pixels to pixelMask
-
-    // std::transform(pixelData.begin(), pixelData.end(), priorPixelData.begin(), maskPixelData.begin(), [](Uint8 a, Uint8 b) { return a - b; });
+    std::transform(pixelData[currentBuffer].begin(), pixelData[currentBuffer].end(), priorPixelData.begin(), maskPixelData.begin(), [](uint32_t a, uint32_t b) { return a ^ b; });
 
     // off_screen_canvas_->Clear();
 
