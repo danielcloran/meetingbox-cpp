@@ -65,7 +65,7 @@ void Renderer::initialize()
     std::fill(pixelData[1].begin(), pixelData[1].end(), 0);
 }
 
-Color get_canvas_pixel(Canvas *canvas, int x, int y) {
+rgb_matrix::Color get_canvas_pixel(Canvas *canvas, int x, int y) {
     uint8_t r, g, b;
     canvas->GetPixel(x, y, &r, &g, &b);
     return Color(r, g, b);
