@@ -85,7 +85,7 @@ void Renderer::draw(SDL_Surface *surface)
 
     // off_screen_canvas_->Clear();
     static int done = 0;
-    if (done != 2)
+    if (done != 60)
     {
         for (int x = 0; x < WIDTH; x++)
         {
