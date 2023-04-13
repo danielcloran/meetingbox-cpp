@@ -104,6 +104,8 @@ void Renderer::draw(SDL_Surface *surface)
     }
 
     off_screen_canvas_ = canvas->SwapOnVSync(off_screen_canvas_);
+    // print offscreen canvas pointer
+    std::cout << off_screen_canvas_ << std::endl;
 }
 
 // void Renderer::draw(SDL_Surface *surface)
