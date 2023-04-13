@@ -67,6 +67,10 @@ void Renderer::initialize()
     std::fill(pixelData[1].begin(), pixelData[1].end(), 0);
 }
 
+bool operator!=(const rgb_matrix::Color& a, const rgb_matrix::Color& b) {
+    return a.r != b.r || a.g != b.g || a.b != b.b;
+}
+
 rgb_matrix::Color get_canvas_pixel(Canvas *canvas, int x, int y) {
     uint8_t r, g, b;
     canvas->GetPixel(x, y, &r, &g, &b);
