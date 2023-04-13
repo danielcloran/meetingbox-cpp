@@ -45,7 +45,7 @@ void InterruptTimer::update()
         lastUpdateMilliseconds = current_timestamp();
         // std::cout <<"outputting time elapsed event" << std::endl;
         events::queue.enqueue(std::make_shared<TimeElapsedEvent>(timeElapsed));
-        events::queue.enqueue(std::make_shared<Draw>(timeElapsed));
+        events::queue.enqueue(std::make_shared<DrawEvent>(timeElapsed));
     }
 }
 

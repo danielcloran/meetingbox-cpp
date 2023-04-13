@@ -14,16 +14,12 @@
 #include <iostream>
 #include "events/event_queue.hpp"
 #include "graphics/graphics.hpp"
-// include jsoncpp
-// #include "json/json.h"
-
-// #include <boost/thread.hpp>
-// #include <boost/chrono.hpp>
 
 using ProcessInfo = std::map<std::string, std::string>;
 
-enum ProcessTypes
+enum ProcessType
 {
+    NONE,
     TIMER,
     SCREEN_SAVER,
     STOCK_TICKER,
@@ -35,10 +31,14 @@ enum ProcessTypes
 class Process
 {
 public:
-    Process(int givenId, std::string givenName) : scopedRemover(events::queue)
+    const ProcessType type = ProcessType::NONE; // must be set by child class
+    Process(int processId, int screenId, Json::Value info) : listeners(events::queue)
     {
-        name = givenName;
-        id = givenId;
+        id = processId;
+        screenId = screenId;
+        name = info["name"].asString();
+
+        listeners.appendListener(EventType::draw, std::bind(&Process::handleDrawEvent, this, std::placeholders::_1));
     }
     ~Process()
     {
@@ -46,57 +46,41 @@ public:
         {
             events::queue.enqueue(std::make_unique<RemoveFromScreenEvent>(id));
         }
-    };
-    static std::shared_ptr<Process> getInstance(int id, std::string intent, ProcessInfo info)
-    {
-        std::logic_error("getInstance called on base class... no class meets intent string");
-        return nullptr;
-    };
-
-    static void updateInstance(std::string intent, ProcessInfo info)
-    {
-        std::logic_error("updateInstance called on base class... no class meets intent string");
-    };
-
-    // void Render(SDL_Renderer* renderer) {
-    //     if (visible) {
-    //         Draw(renderer);
-    //     }
-    // }
-
-    virtual void Draw()
-    {
-        std::cout << "Error, Draw calling in Base Class Process";
+        events::queue.enqueue(std::make_unique<DeleteProcessEvent>(id));
     };
 
     bool visible = true;
     std::string name;
-    int processType;
+
+private:
+    void handleDrawEvent(events::EventPointer theEvent)
+    {
+        if (!visible)
+            return;
+
+        SDL_Renderer *renderer = graphics::get_process_renderer(screenId);
+        if (renderer == NULL)
+        {
+            std::cerr << "Error, renderer is null on process " << id << " with name" << name << std::endl;
+            return;
+        }
+        const DrawEvent *drawEvent = static_cast<const DrawEvent *>(theEvent.get());
+        draw(renderer, drawEvent->getTimeElapsed());
+    }
+    virtual void draw(SDL_Renderer *renderer, long long timeElapsed)
+    {
+        std::cout << "Error, Draw calling in Base Class Process";
+    };
+
+    virtual void configure(Json::Value info)
+    {
+        std::cout << "Error, configure calling in Base Class Process";
+    };
 
 protected:
     int id;
-    Screen::ScreenType location;
-
-    // TODO: alreadyDeleted is a hack to prevent double deletes
-    bool alreadyDeleted;
-    void deleteMe()
-    {
-        if (!alreadyDeleted)
-        {
-            events::queue.enqueue(std::make_unique<DeleteProcessEvent>(id));
-            alreadyDeleted = true;
-        }
-    }
-
-    // boost::mutex mutex;
-
-    // void handleToggleVisibilityEvent(const events::EventPointer &event)
-    // {
-    //     const ToggleVisibilityEvent * changedEvent = static_cast<const ChangedEvent *>(event.get());
-    //     visible = !visible;
-    // }
-
-    events::ScopedRemover scopedRemover;
+    int screenId;
+    events::ScopedRemover listeners;
 };
 
 #endif /* Process_hpp */

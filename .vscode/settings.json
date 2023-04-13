@@ -62,6 +62,10 @@
         "map": "cpp",
         "optional": "cpp",
         "unordered_map": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "deque": "cpp",
+        "regex": "cpp",
+        "sstream": "cpp",
+        "stack": "cpp"
     }
 }

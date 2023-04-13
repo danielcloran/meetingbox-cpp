@@ -29,7 +29,8 @@ enum class EventType
     audio_frame_received,
     socket_subscribe,
     socket_unsubscribe,
-    socket_emit
+    socket_emit,
+    draw
 };
 
 class Event
@@ -72,6 +73,7 @@ struct SSTSource
 };
 
 EVENTPP_MAKE_EVENT(TimeElapsedEvent, Event, EventType::time_elapsed, (long long, getTimeElapsed));
+EVENTPP_MAKE_EVENT(DrawEvent, Event, EventType::draw, (long long, getTimeElapsed));
 EVENTPP_MAKE_EMPTY_EVENT(HotwordDetectedEvent, Event, EventType::hotword_detected);
 
 EVENTPP_MAKE_EMPTY_EVENT(StopEvent, Event, EventType::stop);
