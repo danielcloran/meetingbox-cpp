@@ -56,7 +56,7 @@ namespace graphics
 
 
         // fill with red
-        SDL_SetRenderDrawColor(internal::process_screens_.at(screen2).renderer, 100, 0, 0, 80);
+        SDL_SetRenderDrawColor(internal::process_screens_.at(screen2).renderer, 255, 0, 0, 80);
         SDL_RenderClear(internal::process_screens_.at(screen2).renderer);
 
         // SDL_RenderCopy(internal::process_screens_.at(screen2).renderer, tex, NULL, NULL);
