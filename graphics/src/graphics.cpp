@@ -127,7 +127,7 @@ namespace graphics
             }
             Renderer::draw(internal::screen_);
 
-            SDL_Delay(10); // let the CPU rest
+            SDL_Delay(gif->delays[currentFrame]); // let the CPU rest
         }
     }
 
