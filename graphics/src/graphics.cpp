@@ -1,5 +1,22 @@
 #include "graphics/graphics.hpp"
 
+const std::vector<SDL_Rect> Screen::sides_ = {
+    {0, 0, 64, 64},
+    {64, 0, 64, 64},
+    {128, 0, 64, 64},
+    {192, 0, 64, 64}};
+
+const SDL_Rect Screen::top_ = {256, 0, 64, 64};
+
+std::unordered_map<Screen::ScreenType, SDL_Rect> Screen::screen_sizes_ = {
+    {ScreenType::ALL, {0, 0, 320, 64}},
+    {ScreenType::MIMICK_ALL, {0, 0, 64, 64}},
+    {ScreenType::SIDES, {0, 0, 256, 64}},
+    {ScreenType::MIMICK_SIDES, {0, 0, 64, 64}},
+    {ScreenType::TOP, {256, 0, 64, 64}},
+    {ScreenType::TOP_BAR, {0, 0, 320, 12}},
+    {ScreenType::BOTTOM_BAR, {0, 52, 320, 12}}};
+
 namespace graphics
 {
     SDL_Renderer *renderer_ = nullptr;
@@ -34,7 +51,6 @@ namespace graphics
         // After SDL2 has been initialized, we let the platform specific renderer init
         Renderer::initialize();
 
-
         // draw rect
         // SDL_Rect rect;
         // rect.x = 20;
@@ -42,7 +58,6 @@ namespace graphics
         // rect.w = 20;
         // rect.h = 20;
         // SDL_FillRect(internal::process_screens_.at(screen2).surface, &rect, SDL_MapRGBA(internal::process_screens_.at(screen2).surface->format, 255, 0, 0, 255));
-
 
         // fill the renderer_ with blue
         // SDL_SetRenderDrawColor(renderer_, 130, 70, 140, 210);
@@ -52,13 +67,9 @@ namespace graphics
         // int screen2 = add_process_screen(Screen::ScreenType::MIMICK_ALL);
         // load gif
 
-
-
-
         // SDL_Texture *tex = IMG_LoadTexture(internal::process_screens_.at(screen2).renderer, "../graphics/timebox.png");
         // // copy to surface
         // SDL_RenderCopy(internal::process_screens_.at(screen2).renderer, tex, NULL, &Screen::screen_sizes_.at(internal::process_screens_.at(screen2).screen_type));
-
 
         // fill with red
         // SDL_SetRenderDrawColor(internal::process_screens_.at(screen2).renderer, 255, 0, 0, 80);
@@ -84,7 +95,7 @@ namespace graphics
 
     void loop()
     {
-        IMG_Animation *gif = IMG_LoadAnimation("../graphics/smoke.gif");
+        // IMG_Animation *gif = IMG_LoadAnimation("../graphics/smoke.gif");
         int currentFrame = 0;
         SDL_Event event;
         while (!internal::quit_.load())
@@ -98,14 +109,10 @@ namespace graphics
             }
 
             // play gif
-            currentFrame = (currentFrame + 1) % gif->count;
-            // make tex from frame
-            SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer_, gif->frames[currentFrame]);
-            SDL_RenderCopy(renderer_, tex, NULL, &Screen::screen_sizes_.at(Screen::TOP));
-
-
-
-
+            // currentFrame = (currentFrame + 1) % gif->count;
+            // // make tex from frame
+            // SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer_, gif->frames[currentFrame]);
+            // SDL_RenderCopy(renderer_, tex, NULL, &Screen::screen_sizes_.at(Screen::TOP));
 
             // iterate through process_screens_ backward and draw **IN ORDER**
             for (auto pair = internal::process_screens_.rbegin(); pair != internal::process_screens_.rend(); ++pair)
@@ -127,7 +134,7 @@ namespace graphics
             }
             Renderer::draw(internal::screen_);
 
-            SDL_Delay(gif->delays[currentFrame]); // let the CPU rest
+            SDL_Delay(10); // let the CPU rest
         }
     }
 
@@ -149,11 +156,9 @@ namespace graphics
         return internal::process_screen_id_++;
     }
 
-    SDL_Renderer *get_process_renderer(int screen_id)
+    ProcessScreen get_process_screen(int screen_id)
     {
-        SDL_Renderer *rend = internal::process_screens_.at(screen_id).renderer;
-
-        return rend;
+        return internal::process_screens_.at(screen_id);
     }
 
     void remove_process_screen(int screen_id)

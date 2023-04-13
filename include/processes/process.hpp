@@ -1,12 +1,5 @@
-//
-//  Process.hpp
-//  TimeBox_Xcode
-//
-//  Created by Daniel Cloran on 12/22/21.
-//
-
-#ifndef Process_hpp
-#define Process_hpp
+#ifndef PROCESS_HPP
+#define PROCESS_HPP
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,9 +27,10 @@ public:
     const ProcessType type = ProcessType::NONE; // must be set by child class
     Process(int processId, int screenId, Json::Value info) : listeners(events::queue)
     {
+        std::cout << "Creating process " << processId << ", info:" << info["time"].asLargestInt() << std::endl;
         id = processId;
         screenId = screenId;
-        name = info["name"].asString();
+        // name = info["name"].asString();
 
         listeners.appendListener(EventType::draw, std::bind(&Process::handleDrawEvent, this, std::placeholders::_1));
     }
@@ -44,9 +38,9 @@ public:
     {
         if (visible)
         {
-            events::queue.enqueue(std::make_unique<RemoveFromScreenEvent>(id));
+            events::queue.enqueue(std::make_shared<RemoveFromScreenEvent>(id));
         }
-        events::queue.enqueue(std::make_unique<DeleteProcessEvent>(id));
+        events::queue.enqueue(std::make_shared<DeleteProcessEvent>(id));
     };
 
     bool visible = true;
@@ -58,23 +52,18 @@ private:
         if (!visible)
             return;
 
-        SDL_Renderer *renderer = graphics::get_process_renderer(screenId);
-        if (renderer == NULL)
+        ProcessScreen screen = graphics::get_process_screen(screenId);
+        if (screen.renderer == nullptr)
         {
-            std::cerr << "Error, renderer is null on process " << id << " with name" << name << std::endl;
+            std::cerr << "Error, screen is null on process " << id << " with name" << name << std::endl;
             return;
         }
         const DrawEvent *drawEvent = static_cast<const DrawEvent *>(theEvent.get());
-        draw(renderer, drawEvent->getTimeElapsed());
+        draw(screen.renderer, Screen::screen_sizes_.at(screen.screen_type), drawEvent->getTimeElapsed());
     }
-    virtual void draw(SDL_Renderer *renderer, long long timeElapsed)
+    virtual void draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed)
     {
         std::cout << "Error, Draw calling in Base Class Process";
-    };
-
-    virtual void configure(Json::Value info)
-    {
-        std::cout << "Error, configure calling in Base Class Process";
     };
 
 protected:
@@ -83,4 +72,4 @@ protected:
     events::ScopedRemover listeners;
 };
 
-#endif /* Process_hpp */
+#endif /* PROCESS_HPP */

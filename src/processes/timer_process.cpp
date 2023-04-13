@@ -52,23 +52,33 @@ static int match_duration(const std::string &input, const std::regex &re)
     return duration;
 }
 
-void TimerProcess::configure(Json::Value info)
+TimerProcess::TimerProcess(int processId, int screenId, Json::Value info) : Process(processId, screenId, info)
 {
+    std::cout << "Configuring Timer Process" << std::endl;
     int seconds = 0;
-    std::string timeToParse = info["time"].asString();
-    // std::cout << "Time: " << timeToParse << std::endl;
-
-    std::regex rshort("^((?!T).)*$");
-    if (std::regex_match(timeToParse, rshort)) // no T (Time) exist
+    if (info["time"].isInt())
     {
-        std::regex r("P([[:d:]]+Y)?([[:d:]]+M)?([[:d:]]+D)?");
-        seconds = match_duration(timeToParse, r);
+        seconds = info["time"].asInt();
     }
     else
     {
-        std::regex r("P([[:d:]]+Y)?([[:d:]]+M)?([[:d:]]+D)?T([[:d:]]+H)?([[:d:]]+M)?([[:d:]]+S|[[:d:]]+\\.[[:d:]]+S)?");
-        seconds = match_duration(timeToParse, r);
+        std::string timeToParse = info["time"].asString();
+        // std::cout << "Time: " << timeToParse << std::endl;
+
+        std::regex rshort("^((?!T).)*$");
+        if (std::regex_match(timeToParse, rshort)) // no T (Time) exist
+        {
+            std::regex r("P([[:d:]]+Y)?([[:d:]]+M)?([[:d:]]+D)?");
+            seconds = match_duration(timeToParse, r);
+        }
+        else
+        {
+            std::regex r("P([[:d:]]+Y)?([[:d:]]+M)?([[:d:]]+D)?T([[:d:]]+H)?([[:d:]]+M)?([[:d:]]+S|[[:d:]]+\\.[[:d:]]+S)?");
+            seconds = match_duration(timeToParse, r);
+        }
     }
+
+    std::cout << "Seconds: " << seconds << std::endl;
 
     timerInitialDuration = seconds * 1000;
     timeRemaining = timerInitialDuration;
@@ -77,36 +87,36 @@ void TimerProcess::configure(Json::Value info)
     clearRow = 0;
 }
 
-void TimerProcess::draw(SDL_Renderer *renderer, long long timeElapsed)
+void TimerProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed)
 {
-    int fakeBrightness = 255;
-    int numLeds = (windowCanvas->height() + 1) * (windowCanvas->height() + 1); // TODO: MATH needs some work here
+    timeRemaining += -(timeElapsed);
+    timerPercentage = 1 - (timeRemaining / float(timerInitialDuration));
 
-    // std::cout << timeRemaining << std::endl;
+    // std::cout << "Time Remaining: " << timeRemaining << std::endl;
+
+    int fakeBrightness = 255;
+    int numLeds = (size.h + 1) * (size.h + 1); // TODO: MATH needs some work here
 
     if (timerPercentage <= 1)
     {
         // Straight Down Line Timer
-        int whatRow = int((numLeds * timerPercentage) / (windowCanvas->height() + 1));
-        float topRowPercentage = 1 - (((numLeds * timerPercentage) / (windowCanvas->height() + 1)) - whatRow);
+        int whatRow = int((numLeds * timerPercentage) / (size.h + 1));
+        float topRowPercentage = 1 - (((numLeds * timerPercentage) / (size.h + 1)) - whatRow);
 
         fakeBrightness = int(255 * topRowPercentage); // TODO have brightness be a setting
 
-        windowCanvas->DrawLine(0, whatRow, windowCanvas->width(), whatRow, Color(0, 0, fakeBrightness));
+        SDL_SetRenderDrawColor(renderer, 0, 0, fakeBrightness, 255);
+        SDL_RenderDrawLine(renderer, 0, whatRow, size.w, whatRow);
 
-        for (int otherRowsY = whatRow + 1; otherRowsY < windowCanvas->height() + 1; otherRowsY++)
+        for (int otherRowsY = whatRow + 1; otherRowsY < size.h + 1; otherRowsY++)
         {
-            windowCanvas->DrawLine(0, otherRowsY, windowCanvas->width(), otherRowsY, Color(0, 0, 255));
+            SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+            SDL_RenderDrawLine(renderer, 0, otherRowsY, size.w, otherRowsY);
         }
-        windowCanvas->DrawLine(0, whatRow - 1, windowCanvas->width(), whatRow - 1, Color(0, 0, 0));
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderDrawLine(renderer, 0, whatRow - 1, size.w, whatRow - 1);
     }
 }
-
-
-
-
-
-
 
 // TimerProcess::TimerProcess(int id, int seconds) : Process(id, "timer") {
 //     timerInitialDuration = seconds * 1000;

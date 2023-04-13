@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <string>
 
+#include "json/json.h"
+
 enum class EventType
 {
     create_process,
@@ -52,8 +54,8 @@ private:
 EVENTPP_MAKE_EMPTY_EVENT(LexProcessFinishedEvent, Event, EventType::lex_process_finished);
 // EVENTPP_MAKE_EMPTY_EVENT(PacketReceivedEvent, Event, EventType::packet_received);
 
-using ProcessInfo = std::map<std::string, std::string>;
-EVENTPP_MAKE_EVENT(CreateProcessEvent, Event, EventType::create_process, (std::string, getIntent, setIntent), (ProcessInfo, getInfo, setInfo));
+EVENTPP_MAKE_EVENT(CreateProcessEvent, Event, EventType::create_process, (int, getProcessType, setProcessType), (Json::Value, getInfo, setInfo));
+
 EVENTPP_MAKE_EVENT(EditProcessEvent, Event, EventType::edit_process, (std::string, getIntent, setIntent));
 EVENTPP_MAKE_EVENT(DeleteProcessEvent, Event, EventType::delete_process, (int, getId, setId));
 

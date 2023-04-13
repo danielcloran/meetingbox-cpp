@@ -1,5 +1,5 @@
-#ifndef TIMERPROCESS_hpp
-#define TIMERPROCESS_hpp
+#ifndef TIMER_PROCESS_hpp
+#define TIMER_PROCESS_hpp
 
 #include <stdio.h>
 #include "processes/process.hpp"
@@ -7,6 +7,7 @@
 class TimerProcess : public Process
 {
 public:
+    TimerProcess(int processId, int screenId, Json::Value info);
     const ProcessType type = ProcessType::TIMER;
 
 private:
@@ -20,10 +21,9 @@ private:
 
     void handleTimeElapsedEvent(events::EventPointer theEvent);
 
-    void configure(Json::Value info) override;
-    void draw(SDL_Renderer *renderer, long long timeElapsed) override;
+    void draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed) override;
 
     void listenForEvents();
 };
 
-#endif // TIMERPROCESS_hpp
+#endif /* TIMER_PROCESS_hpp */

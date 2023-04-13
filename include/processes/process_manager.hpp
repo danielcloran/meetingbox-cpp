@@ -1,5 +1,5 @@
-#ifndef ProcessManager_hpp
-#define ProcessManager_hpp
+#ifndef PROCESS_MANAGER_hpp
+#define PROCESS_MANAGER_hpp
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +7,7 @@
 #include "events/event_queue.hpp"
 #include "graphics/graphics.hpp"
 #include "process.hpp"
+
 #include "json/json.h"
 
 // #include "Process.hpp"
@@ -19,23 +20,23 @@
 class ProcessManager {
 public:
     ProcessManager();
-    std::shared_ptr<Process> getProcessById(int id);
+    // std::shared_ptr<Process> getProcessById(int id);
     ~ProcessManager();
 private:
     int processId;
     // ScreenManager * screenManager;
     std::map<int, std::shared_ptr<Process>> processList;
 
-    void listenForEvents();
-    events::ScopedRemover scopedRemover;
+    events::ScopedRemover listeners;
+
     void handleCreateProcessEvent(events::EventPointer theEvent);
-    void handleEditProcessEvent(events::EventPointer theEvent);
-    void handleDeleteProcessEvent(events::EventPointer theEvent);
+    // void handleEditProcessEvent(events::EventPointer theEvent);
+    // void handleDeleteProcessEvent(events::EventPointer theEvent);
 
-    void handleToggleProcessVisibilityEvent(events::EventPointer theEvent);
+    // void handleToggleProcessVisibilityEvent(events::EventPointer theEvent);
 
-    void socketGetProcessList(std::string event, Json::Value data);
-    void socketEditProcessList(std::string event, Json::Value data);
+    // void socketGetProcessList(std::string event, Json::Value data);
+    // void socketEditProcessList(std::string event, Json::Value data);
 };
 
-#endif /* ProcessManager_hpp */
+#endif /* PROCESS_MANAGER_hpp */

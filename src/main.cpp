@@ -5,6 +5,8 @@
 #include "graphics/graphics.hpp"
 #include "events/event_queue.hpp"
 
+#include "processes/process_manager.hpp"
+
 #include "utils/interrupt_timer.hpp"
 
 void interruptHandler(int dummy)
@@ -21,6 +23,8 @@ int main()
 
     std::thread timerThread(&InterruptTimer::update, new InterruptTimer());
     graphics::initialize();
+
+    std::unique_ptr<ProcessManager> processManager = std::make_unique<ProcessManager>();
 
     graphics::loop(); // blocking
     events::queue.dispatch(std::make_unique<StopEvent>());
