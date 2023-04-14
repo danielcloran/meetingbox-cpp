@@ -87,38 +87,78 @@ TimerProcess::TimerProcess(int processId, int screenId, Json::Value info) : Proc
     clearRow = 0;
 }
 
+void fillRendererSmoothly(SDL_Renderer *renderer, SDL_Rect size, float timerPercentage)
+{
+    if (timerPercentage < 0.0f) timerPercentage = 0.0f;
+    if (timerPercentage > 1.0f) timerPercentage = 1.0f;
+
+    for (int row = 0; row < size.h; ++row) {
+        float rowPercentage = static_cast<float>(row) / static_cast<float>(size.h);
+        float brightness = 1.0f - (1.0f - timerPercentage) / (1.0f - rowPercentage);
+
+        if (brightness < 0.0f) brightness = 0.0f;
+        if (brightness > 1.0f) brightness = 1.0f;
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 255 * brightness, 255);
+        SDL_RenderDrawLine(renderer, 0, row, size.w - 1, row);
+    }
+
+    // int width, height;
+    // SDL_GetRendererOutputSize(renderer, &width, &height);
+
+    // Clear the renderer with a black color.
+    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    // SDL_RenderClear(renderer);
+
+    // int filledHeight = static_cast<int>(size.h * timerPercentage);
+    // std::cout << "filledHeight: " << filledHeight << std::endl;
+
+    // for (int y = 0; y < filledHeight; ++y)
+    // {
+    //     // Calculate the brightness based on the percentage of filled height.
+    //     float brightness = static_cast<float>(filledHeight - y) / filledHeight;
+    //     uint8_t colorValue = static_cast<uint8_t>(255 * brightness);
+
+    //     SDL_SetRenderDrawColor(renderer, 0, 0, colorValue, 255);
+    //     SDL_RenderDrawLine(renderer, 0, y, size.w - 1, y);
+    // }
+
+}
+
 void TimerProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed)
 {
     timeRemaining += -(timeElapsed);
-    timerPercentage = 1 - (timeRemaining / float(timerInitialDuration));
+    timerPercentage = (timeRemaining / float(timerInitialDuration));
+    // std::cout << "timerPercentage: " << timerPercentage << std::endl;
+    fillRendererSmoothly(renderer, size, timerPercentage);
 
     // std::cout << "Time Remaining: " << timeRemaining << std::endl;
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderFillRect(renderer, NULL);
+    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    // SDL_RenderFillRect(renderer, NULL);
 
-    int fakeBrightness = 255;
-    int numLeds = (size.h + 1) * (size.h + 1); // TODO: MATH needs some work here
+    // int fakeBrightness = 255;
+    // int numLeds = (size.h + 1) * (size.h + 1); // TODO: MATH needs some work here
 
-    if (timerPercentage <= 1)
-    {
-        // Straight Down Line Timer
-        int whatRow = int((numLeds * timerPercentage) / (size.h + 1));
-        float topRowPercentage = 1 - (((numLeds * timerPercentage) / (size.h + 1)) - whatRow);
+    // if (timerPercentage <= 1)
+    // {
+    //     // Straight Down Line Timer
+    //     int whatRow = int((numLeds * timerPercentage) / (size.h + 1));
+    //     float topRowPercentage = 1 - (((numLeds * timerPercentage) / (size.h + 1)) - whatRow);
 
-        fakeBrightness = int(255 * topRowPercentage); // TODO have brightness be a setting
+    //     fakeBrightness = int(255 * topRowPercentage); // TODO have brightness be a setting
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, fakeBrightness, 255);
-        SDL_RenderDrawLine(renderer, 0, whatRow, size.w, whatRow);
+    //     SDL_SetRenderDrawColor(renderer, 0, 0, fakeBrightness, 255);
+    //     SDL_RenderDrawLine(renderer, 0, whatRow, size.w, whatRow);
 
-        for (int otherRowsY = whatRow + 1; otherRowsY < size.h + 1; otherRowsY++)
-        {
-            SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-            SDL_RenderDrawLine(renderer, 0, otherRowsY, size.w, otherRowsY);
-        }
-        // SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        // SDL_RenderDrawLine(renderer, 0, whatRow - 1, size.w, whatRow - 1);
-    }
+    //     for (int otherRowsY = whatRow + 1; otherRowsY < size.h + 1; otherRowsY++)
+    //     {
+    //         SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+    //         SDL_RenderDrawLine(renderer, 0, otherRowsY, size.w, otherRowsY);
+    //     }
+    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    // SDL_RenderDrawLine(renderer, 0, whatRow - 1, size.w, whatRow - 1);
+    // }
 }
 
 // TimerProcess::TimerProcess(int id, int seconds) : Process(id, "timer") {
