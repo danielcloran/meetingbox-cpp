@@ -89,40 +89,24 @@ TimerProcess::TimerProcess(int processId, int screenId, Json::Value info) : Proc
 
 void fillRendererSmoothly(SDL_Renderer *renderer, SDL_Rect size, float timerPercentage)
 {
-    if (timerPercentage < 0.0f) timerPercentage = 0.0f;
-    if (timerPercentage > 1.0f) timerPercentage = 1.0f;
+    if (timerPercentage < 0.0f)
+        timerPercentage = 0.0f;
+    if (timerPercentage > 1.0f)
+        timerPercentage = 1.0f;
 
-    for (int row = 0; row < size.h; ++row) {
-        float rowPercentage = static_cast<float>(row) / static_cast<float>(size.h);
+    for (int row = 0; row < size.h; ++row)
+    {
+        float rowPercentage = static_cast<float>(size.h - row) / static_cast<float>(size.h);
         float brightness = 1.0f - (1.0f - timerPercentage) / (1.0f - rowPercentage);
 
-        if (brightness < 0.0f) brightness = 0.0f;
-        if (brightness > 1.0f) brightness = 1.0f;
+        if (brightness < 0.0f)
+            brightness = 0.0f;
+        if (brightness > 1.0f)
+            brightness = 1.0f;
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 255 * brightness, 255);
         SDL_RenderDrawLine(renderer, 0, row, size.w - 1, row);
     }
-
-    // int width, height;
-    // SDL_GetRendererOutputSize(renderer, &width, &height);
-
-    // Clear the renderer with a black color.
-    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    // SDL_RenderClear(renderer);
-
-    // int filledHeight = static_cast<int>(size.h * timerPercentage);
-    // std::cout << "filledHeight: " << filledHeight << std::endl;
-
-    // for (int y = 0; y < filledHeight; ++y)
-    // {
-    //     // Calculate the brightness based on the percentage of filled height.
-    //     float brightness = static_cast<float>(filledHeight - y) / filledHeight;
-    //     uint8_t colorValue = static_cast<uint8_t>(255 * brightness);
-
-    //     SDL_SetRenderDrawColor(renderer, 0, 0, colorValue, 255);
-    //     SDL_RenderDrawLine(renderer, 0, y, size.w - 1, y);
-    // }
-
 }
 
 void TimerProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed)
