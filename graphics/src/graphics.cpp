@@ -163,9 +163,10 @@ namespace graphics
 
     void remove_process_screen(int screen_id)
     {
-        SDL_DestroyRenderer(internal::process_screens_.at(screen_id).renderer);
-        SDL_FreeSurface(internal::process_screens_.at(screen_id).surface);
-        internal::process_screens_.erase(screen_id);
+        std::cout << "Removing screen " << screen_id << std::endl;
+        // SDL_DestroyRenderer(internal::process_screens_.at(screen_id).renderer);
+        // SDL_FreeSurface(internal::process_screens_.at(screen_id).surface);
+        // internal::process_screens_.erase(screen_id);
     }
 
 }

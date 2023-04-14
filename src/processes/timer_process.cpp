@@ -110,6 +110,9 @@ void TimerProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long timeEla
         SDL_SetRenderDrawColor(renderer, 0, 0, 255 * brightness, 255);
         SDL_RenderDrawLine(renderer, 0, row, size.w - 1, row);
     }
+
+    if (timeRemaining < 0)
+        deleteMe();
 }
 
 // TimerProcess::TimerProcess(int id, int seconds) : Process(id, "timer") {

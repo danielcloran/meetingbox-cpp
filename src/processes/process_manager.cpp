@@ -16,7 +16,8 @@ ProcessManager::ProcessManager() : listeners(events::queue)
     // screenManager = new ScreenManager(this);
 
     listeners.appendListener(EventType::create_process, std::bind(&ProcessManager::handleCreateProcessEvent, this, std::placeholders::_1));
-    // listeners.appendListener(EventType::edit_process, std::bind(&ProcessManager::handleEditProcessEvent, this, std::placeholders::_1));
+    listeners.appendListener(EventType::edit_process, std::bind(&ProcessManager::handleEditProcessEvent, this, std::placeholders::_1));
+    listeners.appendListener(EventType::delete_process, std::bind(&ProcessManager::handleDeleteProcessEvent, this, std::placeholders::_1));
 
 
     // Initially Add A ScreenSaver;
@@ -24,7 +25,7 @@ ProcessManager::ProcessManager() : listeners(events::queue)
     // events::queue.enqueue(std::make_shared<CreateProcessEvent>(ProcessType::SCREEN_SAVER, Json::Value()));
     // create timer with time in info
     Json::Value timerInfo;
-    timerInfo["time"] = 120;
+    timerInfo["time"] = 5;
     events::queue.enqueue(std::make_shared<CreateProcessEvent>(ProcessType::TIMER, timerInfo));
 
 
@@ -66,43 +67,22 @@ void ProcessManager::handleCreateProcessEvent(events::EventPointer theEvent) {
     int screenId = graphics::add_process_screen(Screen::MIMICK_SIDES);
     std::shared_ptr<Process> newProcess = create_process(processType, processId, screenId, info);
 
-    processList[++processId] = newProcess;
-
-
-//    int location = createEvent->getLocation();
-
-    // Look to create process first
-    // auto createProcess = intentToCreateProcessMap.find(intent);
-    // if (createProcess != intentToCreateProcessMap.end())
-    // {
-    //     processList[processId] = createProcess->second(processId, intent, info);
-    //     processId++;
-    // }
-    // else {
-    //     // Otherwise look in edit process
-    //     auto editProcess = intentToEditProcessMap.find(intent);
-    //     if (editProcess != intentToEditProcessMap.end())
-    //     {
-    //         std::cout << "found edit priocess" << std::endl;
-    //         editProcess->second(intent, info);
-    //     }
-    //     else
-    //     {
-    //         std::cout << "Unknown intent : " << intent << std::endl;
-    //     }
-    // }
+    processes[processId++] = newProcess;
 }
 
-// void ProcessManager::handleEditProcessEvent(EventObjPointer theEvent) {};
+void ProcessManager::handleEditProcessEvent(events::EventPointer theEvent) {};
 
-// void ProcessManager::handleDeleteProcessEvent(EventObjPointer theEvent) {
-//     assert(theEvent->getType() == EventType::delete_process);
-//     DeleteProcessEvent *deleteEvent = dynamic_cast<DeleteProcessEvent *>(theEvent.get());
+void ProcessManager::handleDeleteProcessEvent(events::EventPointer theEvent) {
+    assert(theEvent->getType() == EventType::delete_process);
+    const DeleteProcessEvent * deleteEvent = static_cast<const DeleteProcessEvent *>(theEvent.get());
 
-//     int id = deleteEvent->getId();
+    int id = deleteEvent->getId();
 
-//     processList.erase(id);
-// };
+    graphics::remove_process_screen(processes[id]->screenId);
+    processes.erase(id);
+
+    std::cout << "Deleted process: " << id << std::endl;
+};
 
 // void ProcessManager::handleToggleProcessVisibilityEvent(EventObjPointer theEvent) {
 //     assert(theEvent->getType() == EventType::toggle_visibility);

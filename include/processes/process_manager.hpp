@@ -25,13 +25,13 @@ public:
 private:
     int processId;
     // ScreenManager * screenManager;
-    std::map<int, std::shared_ptr<Process>> processList;
+    std::map<int, std::shared_ptr<Process>> processes;
 
     events::ScopedRemover listeners;
 
     void handleCreateProcessEvent(events::EventPointer theEvent);
-    // void handleEditProcessEvent(events::EventPointer theEvent);
-    // void handleDeleteProcessEvent(events::EventPointer theEvent);
+    void handleEditProcessEvent(events::EventPointer theEvent);
+    void handleDeleteProcessEvent(events::EventPointer theEvent);
 
     // void handleToggleProcessVisibilityEvent(events::EventPointer theEvent);
 

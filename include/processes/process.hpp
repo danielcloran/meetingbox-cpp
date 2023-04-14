@@ -27,29 +27,25 @@ public:
     const ProcessType type = ProcessType::NONE; // must be set by child class
     Process(int processId, int screenId, Json::Value info) : listeners(events::queue)
     {
-        std::cout << "Creating process " << processId << ", info:" << info["time"].asLargestInt() << std::endl;
         id = processId;
         screenId = screenId;
-        // name = info["name"].asString();
+        if (info["name"] != Json::Value::null)
+            name = info["name"].asString();
+        else
+            name = "Unnamed Process";
 
         listeners.appendListener(EventType::draw, std::bind(&Process::handleDrawEvent, this, std::placeholders::_1));
     }
-    ~Process()
-    {
-        if (visible)
-        {
-            events::queue.enqueue(std::make_shared<RemoveFromScreenEvent>(id));
-        }
-        events::queue.enqueue(std::make_shared<DeleteProcessEvent>(id));
-    };
+    ~Process(){};
 
     bool visible = true;
     std::string name;
+    int screenId;
 
 private:
     void handleDrawEvent(events::EventPointer theEvent)
     {
-        if (!visible)
+        if (!visible || deleted)
             return;
 
         ProcessScreen screen = graphics::get_process_screen(screenId);
@@ -68,8 +64,18 @@ private:
 
 protected:
     int id;
-    int screenId;
     events::ScopedRemover listeners;
+
+    bool deleted = false;
+    void deleteMe()
+    {
+        if (deleted)
+            return;
+
+        deleted = true;
+        listeners.reset();
+        events::queue.enqueue(std::make_shared<DeleteProcessEvent>(id));
+    }
 };
 
 #endif /* PROCESS_HPP */
