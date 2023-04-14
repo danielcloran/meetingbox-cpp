@@ -87,8 +87,11 @@ TimerProcess::TimerProcess(int processId, int screenId, Json::Value info) : Proc
     clearRow = 0;
 }
 
-void fillRendererSmoothly(SDL_Renderer *renderer, SDL_Rect size, float timerPercentage)
+void TimerProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed)
 {
+    timeRemaining += -(timeElapsed);
+    timerPercentage = (timeRemaining / float(timerInitialDuration));
+
     if (timerPercentage < 0.0f)
         timerPercentage = 0.0f;
     if (timerPercentage > 1.0f)
@@ -96,7 +99,7 @@ void fillRendererSmoothly(SDL_Renderer *renderer, SDL_Rect size, float timerPerc
 
     for (int row = 0; row < size.h; ++row)
     {
-        float rowPercentage = static_cast<float>(size.h - row) / static_cast<float>(size.h);
+        float rowPercentage = (size.h - row) / (float)(size.h);
         float brightness = 1.0f - (1.0f - timerPercentage) / (1.0f - rowPercentage);
 
         if (brightness < 0.0f)
@@ -107,42 +110,6 @@ void fillRendererSmoothly(SDL_Renderer *renderer, SDL_Rect size, float timerPerc
         SDL_SetRenderDrawColor(renderer, 0, 0, 255 * brightness, 255);
         SDL_RenderDrawLine(renderer, 0, row, size.w - 1, row);
     }
-}
-
-void TimerProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed)
-{
-    timeRemaining += -(timeElapsed);
-    timerPercentage = (timeRemaining / float(timerInitialDuration));
-    // std::cout << "timerPercentage: " << timerPercentage << std::endl;
-    fillRendererSmoothly(renderer, size, timerPercentage);
-
-    // std::cout << "Time Remaining: " << timeRemaining << std::endl;
-
-    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    // SDL_RenderFillRect(renderer, NULL);
-
-    // int fakeBrightness = 255;
-    // int numLeds = (size.h + 1) * (size.h + 1); // TODO: MATH needs some work here
-
-    // if (timerPercentage <= 1)
-    // {
-    //     // Straight Down Line Timer
-    //     int whatRow = int((numLeds * timerPercentage) / (size.h + 1));
-    //     float topRowPercentage = 1 - (((numLeds * timerPercentage) / (size.h + 1)) - whatRow);
-
-    //     fakeBrightness = int(255 * topRowPercentage); // TODO have brightness be a setting
-
-    //     SDL_SetRenderDrawColor(renderer, 0, 0, fakeBrightness, 255);
-    //     SDL_RenderDrawLine(renderer, 0, whatRow, size.w, whatRow);
-
-    //     for (int otherRowsY = whatRow + 1; otherRowsY < size.h + 1; otherRowsY++)
-    //     {
-    //         SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-    //         SDL_RenderDrawLine(renderer, 0, otherRowsY, size.w, otherRowsY);
-    //     }
-    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    // SDL_RenderDrawLine(renderer, 0, whatRow - 1, size.w, whatRow - 1);
-    // }
 }
 
 // TimerProcess::TimerProcess(int id, int seconds) : Process(id, "timer") {
