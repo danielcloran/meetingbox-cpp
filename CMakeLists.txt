@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 # Add the main executable
-add_executable(main src/main.cpp src/utils/interrupt_timer.cpp src/processes/timer_process.cpp src/processes/process_manager.cpp)
+add_executable(main src/main.cpp src/utils/interrupt_timer.cpp src/processes/screensaver_process.cpp src/processes/timer_process.cpp src/processes/process_manager.cpp)
 
 # Add vcpkg toolchain file to enable vcpkg packages
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/libs/vcpkg/scripts/buildsystems/vcpkg.cmake)

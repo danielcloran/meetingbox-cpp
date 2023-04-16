@@ -26,7 +26,7 @@ ProcessManager::ProcessManager() : listeners(events::queue)
     // create timer with time in info
     Json::Value timerInfo;
     timerInfo["time"] = 5;
-    events::queue.enqueue(std::make_shared<CreateProcessEvent>(ProcessType::TIMER, timerInfo));
+    events::queue.enqueue(std::make_shared<CreateProcessEvent>(ProcessType::SCREENSAVER, timerInfo));
 
 
     // events::queue.enqueue(std::make_shared<TimeElapsedEvent>(timeElapsed));
@@ -77,7 +77,6 @@ void ProcessManager::handleDeleteProcessEvent(events::EventPointer theEvent) {
     const DeleteProcessEvent * deleteEvent = static_cast<const DeleteProcessEvent *>(theEvent.get());
 
     int id = deleteEvent->getId();
-
     graphics::remove_process_screen(processes[id]->screenId);
     processes.erase(id);
 

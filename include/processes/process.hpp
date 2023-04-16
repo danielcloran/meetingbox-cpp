@@ -14,7 +14,7 @@ enum ProcessType
 {
     NONE,
     TIMER,
-    SCREEN_SAVER,
+    SCREENSAVER,
     STOCK_TICKER,
     SCREEN_NUMS,
     TALKER_TRACKER,

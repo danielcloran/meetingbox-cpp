@@ -6,17 +6,18 @@
 
 #include "processes/process.hpp"
 #include "processes/timer_process.hpp"
+#include "processes/screensaver_process.hpp"
 
-// using ProcessFactory = std::function<std::unique_ptr<Process>(int, int, Json::Value)>;
-
-// // Register process factories
-std::unordered_map<ProcessType, int> other = {
-    {ProcessType::TIMER, 2}
-    // Add other process factories here
-};
+template <typename T>
+std::function<std::shared_ptr<T>(int, int, Json::Value)> createProcess() {
+    return [](int processId, int screenId, Json::Value info) {
+        return std::make_shared<T>(processId, screenId, info);
+    };
+}
 
 std::unordered_map<ProcessType, std::function<std::shared_ptr<Process>(int, int, Json::Value)>> process_factories = {
-    {ProcessType::TIMER, [](int processId, int screenId, Json::Value info) { return std::make_shared<TimerProcess>(processId, screenId, info); }}
+    {ProcessType::TIMER, createProcess<TimerProcess>()},
+    {ProcessType::SCREENSAVER, createProcess<ScreensaverProcess>()}
     // Add other process factories here
 };
 
