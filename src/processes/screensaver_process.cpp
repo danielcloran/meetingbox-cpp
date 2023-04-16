@@ -33,7 +33,7 @@ static void RotatingColors(SDL_Renderer *renderer, SDL_Rect size, long long time
         g = 255 - c;
         b = c;
     }
-    SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+    SDL_SetRenderDrawColor(renderer, r, g, b, 150);
     SDL_RenderClear(renderer);
     continuum += 1;
 }
