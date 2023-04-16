@@ -36,7 +36,6 @@ static void RotatingColors(SDL_Renderer *renderer, SDL_Rect size, long long time
     SDL_SetRenderDrawColor(renderer, r, g, b, 255);
     SDL_RenderClear(renderer);
     continuum += 1;
-    std::cout << "Continuum: " << continuum << std::endl;
 }
 
 void ScreensaverProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed)
