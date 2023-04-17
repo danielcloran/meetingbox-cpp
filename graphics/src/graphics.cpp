@@ -95,7 +95,7 @@ namespace graphics
 
     void loop()
     {
-        // IMG_Animation *gif = IMG_LoadAnimation("../graphics/smoke.gif");
+        IMG_Animation *gif = IMG_LoadAnimation("../graphics/resizeflow.gif");
         int currentFrame = 0;
         SDL_Event event;
         while (!internal::quit_.load())
@@ -109,10 +109,10 @@ namespace graphics
             }
 
             // play gif
-            // currentFrame = (currentFrame + 1) % gif->count;
-            // // make tex from frame
-            // SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer_, gif->frames[currentFrame]);
-            // SDL_RenderCopy(renderer_, tex, NULL, &Screen::screen_sizes_.at(Screen::TOP));
+            currentFrame = (currentFrame + 1) % gif->count;
+            // make tex from frame
+            SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer_, gif->frames[currentFrame]);
+            SDL_RenderCopy(renderer_, tex, NULL, &Screen::screen_sizes_.at(Screen::TOP));
 
             // iterate through process_screens_ backward and draw **IN ORDER**
             for (auto pair = internal::process_screens_.rbegin(); pair != internal::process_screens_.rend(); ++pair)
