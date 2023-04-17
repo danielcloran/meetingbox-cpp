@@ -1,7 +1,7 @@
 #include "processes/screensaver_process.hpp"
 
 ScreensaverProcess::ScreensaverProcess(int processId, int screenId, Json::Value info) : Process(processId, screenId, info) {
-    defaultSaver = ScreensaverTypes::ROTATING_COLORS;
+    defaultSaver = ScreensaverTypes::LOADING;
 }
 
 static void SolidColor(SDL_Renderer *renderer, SDL_Rect size)
@@ -38,6 +38,16 @@ static void RotatingColors(SDL_Renderer *renderer, SDL_Rect size, long long time
     continuum += 1;
 }
 
+static void Loading(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed) {
+    static IMG_Animation *gif = IMG_LoadAnimation("../graphics/resizeflow.gif");
+    static int currentFrame = 0;
+        // play gif
+    currentFrame = (currentFrame + 1) % gif->count;
+    // make tex from frame
+    SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, gif->frames[currentFrame]);
+    SDL_RenderCopy(renderer, tex, NULL, NULL);
+}
+
 void ScreensaverProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed)
 {
     switch (defaultSaver)
@@ -52,7 +62,7 @@ void ScreensaverProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long t
         // GameOfLife(windowCanvas);
         break;
     case ScreensaverTypes::LOADING:
-        // Loading(windowCanvas);
+        Loading(renderer, size, timeElapsed);
         break;
     case ScreensaverTypes::THE_OFFICE:
         // TheOffice(windowCanvas);

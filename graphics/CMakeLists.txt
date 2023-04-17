@@ -12,6 +12,6 @@ else()
     target_sources(graphics PRIVATE src/renderer.cpp)
 endif()
 
-target_link_libraries(graphics PRIVATE $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>)
+target_link_libraries(graphics PUBLIC $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>)
 target_link_libraries(graphics PUBLIC ${SHARED_LIBS} SDL2::SDL2 events)
 target_include_directories(graphics PUBLIC ${VCPKG_INCLUDE} "include" "${CMAKE_SOURCE_DIR}/libs/rpi-rgb-led-matrix/include")
