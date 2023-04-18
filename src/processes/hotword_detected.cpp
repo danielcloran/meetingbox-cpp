@@ -2,7 +2,6 @@
 
 HotwordDetectedProcess::HotwordDetectedProcess(int processId, int screenId, Json::Value info) : Process(processId, screenId, info)
 {
-    state = State::LISTENING;
     listeners.appendListener(EventType::hotword_detected, [this](events::EventPointer e)
                              { state = State::LISTENING; });
     listeners.appendListener(EventType::silence_detected, [this](events::EventPointer e)
