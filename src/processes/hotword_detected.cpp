@@ -17,8 +17,8 @@ void HotwordDetectedProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long lo
     {
     case State::LISTENING:
         // draw 12 dots in a circle around the center of the screen
-        SDL_SetRenderDrawColor(renderer, 200, 0, 0, 255);
-        SDL_RenderClear(renderer);
+        // SDL_SetRenderDrawColor(renderer, 200, 0, 0, 255);
+        // SDL_RenderClear(renderer);
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         for (int i = 0; i < 12; i++)
