@@ -5,7 +5,7 @@
 //  Created by Daniel Cloran on 12/22/21.
 //
 
-#include "processes/timer_process.hpp"
+#include "processes/timer.hpp"
 #include <iostream>
 #include <unistd.h>
 #include <regex>

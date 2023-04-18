@@ -1,4 +1,4 @@
-#include "processes/screensaver_process.hpp"
+#include "processes/screensaver.hpp"
 
 ScreensaverProcess::ScreensaverProcess(int processId, int screenId, Json::Value info) : Process(processId, screenId, info) {
     defaultSaver = ScreensaverTypes::LOADING;

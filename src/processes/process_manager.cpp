@@ -24,9 +24,11 @@ ProcessManager::ProcessManager() : listeners(events::queue)
 //    eventQueue->publish(EventType::create_process, new CreateProcessEvent("showTimer", {{"time", "30"}}));
     // events::queue.enqueue(std::make_shared<CreateProcessEvent>(ProcessType::SCREEN_SAVER, Json::Value()));
     // create timer with time in info
-    Json::Value timerInfo;
-    timerInfo["time"] = 5;
-    events::queue.enqueue(std::make_shared<CreateProcessEvent>(ProcessType::SCREENSAVER, timerInfo));
+    // Json::Value timerInfo;
+    // timerInfo["time"] = 5;
+    // events::queue.enqueue(std::make_shared<CreateProcessEvent>(ProcessType::SCREENSAVER, timerInfo));
+
+    events::queue.enqueue(std::make_shared<CreateProcessEvent>(ProcessType::HOTWORD_DETECTED, Json::Value()));
 
 
     // events::queue.enqueue(std::make_shared<TimeElapsedEvent>(timeElapsed));

@@ -5,8 +5,9 @@
 #include "json/json.h"
 
 #include "processes/process.hpp"
-#include "processes/timer_process.hpp"
-#include "processes/screensaver_process.hpp"
+#include "processes/timer.hpp"
+#include "processes/hotword_detected.hpp"
+#include "processes/screensaver.hpp"
 
 template <typename T>
 std::function<std::shared_ptr<T>(int, int, Json::Value)> createProcess() {
@@ -17,7 +18,8 @@ std::function<std::shared_ptr<T>(int, int, Json::Value)> createProcess() {
 
 std::unordered_map<ProcessType, std::function<std::shared_ptr<Process>(int, int, Json::Value)>> process_factories = {
     {ProcessType::TIMER, createProcess<TimerProcess>()},
-    {ProcessType::SCREENSAVER, createProcess<ScreensaverProcess>()}
+    {ProcessType::SCREENSAVER, createProcess<ScreensaverProcess>()},
+    {ProcessType::HOTWORD_DETECTED, createProcess<HotwordDetectedProcess>()}
     // Add other process factories here
 };
 

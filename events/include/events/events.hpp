@@ -22,7 +22,8 @@ enum class EventType
     delete_process,
     packet_received,
     hotword_detected,
-    lex_process_finished,
+    silence_detected,
+    intent_received,
     time_elapsed,
     stop,
     toggle_visibility,
@@ -51,7 +52,9 @@ private:
 };
 
 // System Processes
-EVENTPP_MAKE_EMPTY_EVENT(LexProcessFinishedEvent, Event, EventType::lex_process_finished);
+EVENTPP_MAKE_EMPTY_EVENT(HotwordDetectedEvent, Event, EventType::hotword_detected);
+EVENTPP_MAKE_EMPTY_EVENT(SileceDetectedEvent, Event, EventType::silence_detected);
+EVENTPP_MAKE_EMPTY_EVENT(IntentReceivedEvent, Event, EventType::intent_received);
 // EVENTPP_MAKE_EMPTY_EVENT(PacketReceivedEvent, Event, EventType::packet_received);
 
 EVENTPP_MAKE_EVENT(CreateProcessEvent, Event, EventType::create_process, (int, getProcessType, setProcessType), (Json::Value, getInfo, setInfo));
@@ -76,7 +79,6 @@ struct SSTSource
 
 EVENTPP_MAKE_EVENT(TimeElapsedEvent, Event, EventType::time_elapsed, (long long, getTimeElapsed));
 EVENTPP_MAKE_EVENT(DrawEvent, Event, EventType::draw, (long long, getTimeElapsed));
-EVENTPP_MAKE_EMPTY_EVENT(HotwordDetectedEvent, Event, EventType::hotword_detected);
 
 EVENTPP_MAKE_EMPTY_EVENT(StopEvent, Event, EventType::stop);
 

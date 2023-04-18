@@ -15,6 +15,7 @@ enum ProcessType
     NONE,
     TIMER,
     SCREENSAVER,
+    HOTWORD_DETECTED,
     STOCK_TICKER,
     SCREEN_NUMS,
     TALKER_TRACKER,

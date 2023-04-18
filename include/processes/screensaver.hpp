@@ -1,5 +1,5 @@
-#ifndef SCREENSAVER_PROCESS_hpp
-#define SCREENSAVER_PROCESS_hpp
+#ifndef SCREENSAVER_hpp
+#define SCREENSAVER_hpp
 
 #include <stdio.h>
 #include "processes/process.hpp"
@@ -24,4 +24,4 @@ private:
     ScreensaverTypes defaultSaver = ScreensaverTypes::SOLID_COLOR;
 };
 
-#endif /* SCREENSAVER_PROCESS_hpp */
+#endif /* SCREENSAVER_hpp */
