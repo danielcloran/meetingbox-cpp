@@ -31,11 +31,18 @@ namespace graphics
 
     void initialize()
     {
-        if (SDL_Init(SDL_INIT_EVERYTHING & ~SDL_INIT_VIDEO & SDL_INIT_AUDIO) < 0)
+        if (SDL_Init(SDL_INIT_EVERYTHING & ~SDL_INIT_VIDEO) < 0)
         {
             std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
             return;
         }
+
+        if (SDL_Init(SDL_INIT_AUDIO) < 0)
+        {
+            std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
+            return;
+        }
+
         // Allow SDL2 to attempt anti-aliasing
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
