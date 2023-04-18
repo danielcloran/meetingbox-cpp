@@ -18,6 +18,8 @@ if [ -d "./libs/vcpkg/" ]; then
 else
     git clone https://github.com/Microsoft/vcpkg.git ./libs/vcpkg
     ./libs/vcpkg/bootstrap-vcpkg.sh
+
+    git clone --recurse-submodules https://github.com/Picovoice/porcupine.git ./libs/porcupine
 fi
 
 ./libs/vcpkg/vcpkg install --x-install-root=libs

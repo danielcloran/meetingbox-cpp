@@ -3,7 +3,7 @@
 namespace events
 {
     EQ queue;
-    namespace detail
+    namespace internal
     {
         std::atomic<bool> quit_(false);
         std::thread event_thread_;
@@ -25,15 +25,15 @@ namespace events
 
     void initialize()
     {
-        detail::event_thread_ = std::thread(detail::event_loop);
+        internal::event_thread_ = std::thread(internal::event_loop);
     }
 
     void quit()
     {
-        detail::quit_.store(true);
-        if (detail::event_thread_.joinable())
+        internal::quit_.store(true);
+        if (internal::event_thread_.joinable())
         {
-            detail::event_thread_.join();
+            internal::event_thread_.join();
         }
     }
 }

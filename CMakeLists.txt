@@ -26,13 +26,16 @@ find_package(eventpp CONFIG REQUIRED)
 find_package(jsoncpp CONFIG REQUIRED)
 set(SHARED_LIBS fmt::fmt-header-only spdlog::spdlog eventpp::eventpp JsonCpp::JsonCpp)
 
+# Graphics and Audio depend on events
 add_subdirectory(events)
 add_subdirectory(graphics)
+add_subdirectory(audio)
 
 # Link against the required libraries
 target_link_libraries(main PRIVATE
     events
     graphics
+    audio
     ${SHARED_LIBS}
 )
 

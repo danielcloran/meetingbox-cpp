@@ -4,6 +4,7 @@
 
 #include "graphics/graphics.hpp"
 #include "events/event_queue.hpp"
+#include "audio/audio.hpp"
 
 #include "processes/process_manager.hpp"
 
@@ -20,16 +21,18 @@ int main()
     signal(SIGINT, interruptHandler);
 
     events::initialize();
+    audio::initialize();
 
     std::thread timerThread(&InterruptTimer::update, new InterruptTimer());
+
     graphics::initialize();
-
     std::unique_ptr<ProcessManager> processManager = std::make_unique<ProcessManager>();
-
     graphics::loop(); // blocking
+
     events::queue.dispatch(std::make_unique<StopEvent>());
 
     timerThread.join();
+    audio::quit();
     events::quit();
 
     return 0;
