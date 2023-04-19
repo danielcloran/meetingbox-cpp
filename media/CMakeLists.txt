@@ -22,5 +22,5 @@ target_link_libraries(media PUBLIC
     $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
 )
 
-target_include_directories(media PRIVATE "${CMAKE_SOURCE_DIR}/libs/rpi-rgb-led-matrix/include")
+target_include_directories(media PUBLIC "${CMAKE_SOURCE_DIR}/libs/rpi-rgb-led-matrix/include")
 target_include_directories(media PUBLIC ${VCPKG_INCLUDE} "include" ${CMAKE_SOURCE_DIR}/libs/porcupine/include)
