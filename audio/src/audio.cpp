@@ -74,7 +74,6 @@ namespace audio
         if (num_audio_devices <= 0)
         {
             std::cerr << "No audio input devices found!" << std::endl;
-            return 1;
         }
 
         const char *usb_microphone_name = nullptr;
@@ -96,7 +95,6 @@ namespace audio
         if (usb_microphone_name == nullptr)
         {
             std::cerr << "USB microphone not found!" << std::endl;
-            return 1;
         }
 
         // Configure audio specification
