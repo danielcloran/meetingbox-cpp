@@ -70,6 +70,35 @@ namespace audio
             std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
         }
 
+        int num_audio_devices = SDL_GetNumAudioDevices(SDL_TRUE);
+        if (num_audio_devices <= 0)
+        {
+            std::cerr << "No audio input devices found!" << std::endl;
+            return 1;
+        }
+
+        const char *usb_microphone_name = nullptr;
+        for (int i = 0; i < num_audio_devices; ++i)
+        {
+            const char *device_name = SDL_GetAudioDeviceName(i, SDL_TRUE);
+            if (device_name != nullptr)
+            {
+                std::cout << "Audio device " << i << ": " << device_name << std::endl;
+                // Replace 1 with the card number you got from arecord -l
+                if (strstr(device_name, "hw:1,0") != nullptr)
+                {
+                    usb_microphone_name = device_name;
+                    break;
+                }
+            }
+        }
+
+        if (usb_microphone_name == nullptr)
+        {
+            std::cerr << "USB microphone not found!" << std::endl;
+            return 1;
+        }
+
         // Configure audio specification
         SDL_AudioSpec audio_spec;
         audio_spec.freq = SAMPLE_RATE;
@@ -80,7 +109,7 @@ namespace audio
         audio_spec.callback = internal::process_audio_data;
 
         // Open audio device for recording
-        SDL_AudioDeviceID audio_device_id = SDL_OpenAudioDevice(nullptr, 1, &audio_spec, nullptr, 0);
+        SDL_AudioDeviceID audio_device_id = SDL_OpenAudioDevice(usb_microphone_name, 1, &audio_spec, nullptr, 0);
         if (!audio_device_id)
         {
             std::cerr << "Failed to open audio device! SDL_Error: " << SDL_GetError() << std::endl;
