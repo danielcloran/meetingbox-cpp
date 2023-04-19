@@ -28,14 +28,12 @@ set(SHARED_LIBS fmt::fmt-header-only spdlog::spdlog eventpp::eventpp JsonCpp::Js
 
 # Graphics and Audio depend on events
 add_subdirectory(events)
-add_subdirectory(graphics)
-add_subdirectory(audio)
+add_subdirectory(media)
 
 # Link against the required libraries
 target_link_libraries(main PRIVATE
     events
-    graphics
-    audio
+    media
     ${SHARED_LIBS}
 )
 

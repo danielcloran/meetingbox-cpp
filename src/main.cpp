@@ -20,6 +20,11 @@ int main()
 {
     signal(SIGINT, interruptHandler);
 
+    if (SDL_Init(SDL_INIT_EVERYTHING & ~SDL_INIT_VIDEO) < 0)
+    {
+        std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
+    }
+
     events::initialize();
     audio::initialize();
 
