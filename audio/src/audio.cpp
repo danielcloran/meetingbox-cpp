@@ -84,7 +84,7 @@ namespace audio
             {
                 std::cout << "Audio device " << i << ": " << device_name << std::endl;
                 // Replace 1 with the card number you got from arecord -l
-                if (strstr(device_name, "hw:1,0") != nullptr)
+                if (strstr(device_name, "ReSpeaker 4 Mic Array (UAC1.0)") != nullptr)
                 {
                     usb_microphone_name = device_name;
                     break;
