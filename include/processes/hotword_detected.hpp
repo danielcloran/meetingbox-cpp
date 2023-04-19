@@ -18,7 +18,7 @@ private:
         PROCESSESING,
         IDLE
     };
-    State state = State::LISTENING;
+    State state = State::IDLE;
 };
 
 #endif /* SCREENSAVER_PROCESS_hpp */

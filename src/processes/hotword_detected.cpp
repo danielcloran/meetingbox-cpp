@@ -33,6 +33,8 @@ void HotwordDetectedProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long lo
         break;
     case State::IDLE:
     default:
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+        SDL_RenderClear(renderer);
         break;
     };
 }
