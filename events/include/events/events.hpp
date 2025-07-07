@@ -25,6 +25,7 @@ enum class EventType
     silence_detected,
     intent_received,
     time_elapsed,
+    set_frame_rate,
     stop,
     toggle_visibility,
     add_to_screen,
@@ -78,6 +79,7 @@ struct SSTSource
 };
 
 EVENTPP_MAKE_EVENT(TimeElapsedEvent, Event, EventType::time_elapsed, (long long, getTimeElapsed));
+EVENTPP_MAKE_EVENT(SetFrameRateEvent, Event, EventType::set_frame_rate, (int, getFrameRate));
 EVENTPP_MAKE_EVENT(DrawEvent, Event, EventType::draw, (long long, getTimeElapsed));
 
 EVENTPP_MAKE_EMPTY_EVENT(StopEvent, Event, EventType::stop);

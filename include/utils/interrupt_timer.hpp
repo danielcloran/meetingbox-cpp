@@ -20,6 +20,7 @@ private:
     volatile bool stop;
     events::ScopedRemover listeners;
     void handleStopEvent(events::EventPointer theEvent);
+    void handleSetFrameRateEvent(events::EventPointer theEvent);
 };
 
 #endif // INTERRUPT_TIMER_HPP
