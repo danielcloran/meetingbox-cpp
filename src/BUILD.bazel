@@ -1,0 +1,30 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "meetingbox_core",
+    srcs = [
+        "processes/hotword_detected.cpp",
+        "processes/process_manager.cpp",
+        "processes/screensaver_simple.cpp",
+        "processes/timer.cpp",
+        "utils/interrupt_timer.cpp",
+    ],
+    deps = [
+        "//include:headers",
+        "//events",
+        "//media",
+        "@jsoncpp//:jsoncpp",
+    ],
+    copts = ["-std=c++17"],
+)
+
+cc_binary(
+    name = "meetingbox",
+    srcs = ["main.cpp"],
+    deps = [
+        ":meetingbox_core",
+    ],
+    copts = ["-std=c++17"],
+)

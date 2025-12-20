@@ -1,0 +1,65 @@
+load("@platforms//cpu:defs.bzl", "CPU_CONSTRAINTS")
+load("@platforms//os:defs.bzl", "OS_CONSTRAINTS")
+
+package(default_visibility = ["//visibility:public"])
+
+# Define platform configurations for our supported platforms
+platform(
+    name = "aarch64_platform",
+    constraint_values = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+    ],
+)
+
+platform(
+    name = "x86_64_platform",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:macos",
+    ],
+)
+
+# Additional constraint settings specific to our project
+constraint_setting(
+    name = "device_type",
+    default_constraint_value = ":generic",
+)
+
+constraint_value(
+    name = "generic",
+    constraint_setting = ":device_type",
+)
+
+constraint_value(
+    name = "raspberry_pi",
+    constraint_setting = ":device_type",
+)
+
+# Platform with Raspberry Pi specific attributes
+platform(
+    name = "raspberry_pi_platform",
+    constraint_values = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+        ":raspberry_pi",
+    ],
+    parents = [":aarch64_platform"],
+)
+
+# Define config_setting for easy use in BUILD files
+config_setting(
+    name = "is_raspberry_pi",
+    constraint_values = [
+        "@platforms//cpu:aarch64",
+        ":raspberry_pi",
+    ],
+)
+
+config_setting(
+    name = "is_macos",
+    constraint_values = [
+        "@platforms//os:macos",
+    ],
+)
+

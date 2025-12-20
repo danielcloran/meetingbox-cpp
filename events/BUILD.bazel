@@ -1,0 +1,23 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "events",
+    srcs = [
+        "src/event_queue.cpp",
+    ],
+    hdrs = glob([
+        "include/events/**/*.hpp",
+    ]),
+    strip_include_prefix = "include",
+    deps = [
+        "@eventpp//:eventpp",
+        "@jsoncpp//:jsoncpp",
+    ],
+    copts = [
+        "-std=c++17",
+    ],
+    visibility = ["//visibility:public"],
+)
+

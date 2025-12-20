@@ -8,6 +8,7 @@ class TimerProcess : public Process
 {
 public:
     TimerProcess(int processId, int screenId, Json::Value info);
+    virtual ~TimerProcess() = default;
     const ProcessType type = ProcessType::TIMER;
 
 private:
@@ -21,7 +22,7 @@ private:
 
     void handleTimeElapsedEvent(events::EventPointer theEvent);
 
-    void draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed) override;
+    void draw(long long timeElapsed) override;
 
     void listenForEvents();
 };

@@ -1,0 +1,125 @@
+# Module definition for the MeetingBox Bazel build.
+# This captures the external dependencies that are required to build
+# the application with Bazel/Bzlmod.
+
+module(
+    name = "meetingbox",
+    version = "0.1.0",
+    compatibility_level = 1,
+)
+
+# Core dependencies available from the Bazel Central Registry.
+bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "fmt", version = "11.0.2")
+bazel_dep(name = "spdlog", version = "1.15.0")
+bazel_dep(name = "platforms", version = "0.0.10")
+bazel_dep(name = "rules_python", version = "0.40.0")
+
+# Load repository rule helpers so we can bring in dependencies
+# that are not yet published to the registry.
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+# SDL2 for cross-platform graphics (using local framework)
+local_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:local.bzl", "local_repository")
+
+local_repository(
+    name = "sdl2",
+    path = "external/SDL2.framework",
+)
+
+# rpi-rgb-led-matrix for Raspberry Pi LED matrix control
+git_repository(
+    name = "rpi_rgb_led_matrix",
+    remote = "https://github.com/hzeller/rpi-rgb-led-matrix.git",
+    tag = "v1.0",
+    build_file_content = """
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "librgbmatrix",
+    srcs = glob(["lib/*.cc"]),
+    hdrs = glob(["include/*.h"]),
+    includes = ["include"],
+    linkopts = select({
+        "@platforms//os:linux": ["-lrt", "-lm", "-lpthread"],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:public"],
+)
+""",
+)
+
+# Header-only event dispatcher library.
+git_repository(
+    name = "eventpp",
+    remote = "https://github.com/wqking/eventpp.git",
+    tag = "v0.1.2",
+    build_file_content = """
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "eventpp",
+    hdrs = glob(["include/eventpp/**/*.h"]),
+    includes = ["include"],
+)
+""",
+)
+
+# JsonCpp serialization library.
+git_repository(
+    name = "jsoncpp",
+    remote = "https://github.com/open-source-parsers/jsoncpp.git",
+    tag = "1.9.5",
+    build_file_content = """
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "jsoncpp",
+    srcs = glob(["src/lib_json/*.cpp"]),
+    hdrs = glob(["include/json/**/*.h"]) + glob(["src/lib_json/*.h"]) + glob(["src/lib_json/*.inl"]),
+    includes = ["include", "src/lib_json"],
+    copts = ["-Wno-implicit-fallthrough", "-DJSON_USE_EXCEPTION=0"],
+)
+""",
+)
+
+# Picovoice Porcupine hotword detection SDK.
+git_repository(
+    name = "porcupine",
+    remote = "https://github.com/Picovoice/porcupine.git",
+    tag = "v3.0",
+    build_file_content = """
+load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "headers",
+    hdrs = glob(["include/*.h"]),
+    includes = ["include"],
+)
+
+cc_import(
+    name = "mac_lib",
+    shared_library = select({
+        "@platforms//cpu:x86_64": "lib/mac/x86_64/libpv_porcupine.dylib",
+        "@platforms//cpu:arm64": "lib/mac/arm64/libpv_porcupine.dylib",
+        "//conditions:default": "lib/mac/x86_64/libpv_porcupine.dylib",
+    }),
+    deps = [":headers"],
+)
+
+cc_import(
+    name = "rpi_lib",
+    shared_library = "lib/raspberry-pi/cortex-a72-aarch64/libpv_porcupine.so",
+    deps = [":headers"],
+)
+""",
+)

@@ -1,0 +1,123 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+# Reference to the Raspberry Pi config setting
+config_setting(
+    name = "raspberry_pi",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+    ],
+)
+
+# Create filegroups for porcupine hotword model files
+filegroup(
+    name = "hotword_models",
+    srcs = glob([
+        "src/audio/hotword_models/*",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
+# Create a filegroup for media resources
+filegroup(
+    name = "media_resources",
+    srcs = glob([
+        "*.png",
+        "*.gif",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
+# Audio library with Porcupine support
+cc_library(
+    name = "audio",
+    srcs = [
+        "src/audio/audio.cpp",
+    ],
+    hdrs = glob([
+        "include/audio/**/*.hpp",
+    ]),
+    strip_include_prefix = "include",
+    deps = [
+        "//events",
+        "@porcupine//:headers",
+        "@fmt//:fmt",
+        "@spdlog//:spdlog",
+    ] + select({
+        ":raspberry_pi": ["@porcupine//:rpi_lib"],
+        "//conditions:default": [
+            "@porcupine//:mac_lib",
+            "@sdl2//:sdl2",
+        ],
+    }),
+    data = [
+        ":hotword_models",
+    ],
+    copts = [
+        "-std=c++17",
+    ] + select({
+        "@platforms//cpu:aarch64": ["-DRASPBERRY_PI"],
+        "//conditions:default": [],
+    }),
+    linkopts = select({
+        ":raspberry_pi": ["-lSDL2"],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:public"],
+)
+
+cc_binary(
+    name = "media_demo",
+    srcs = ["src/demo.cpp"],
+    deps = [":media"],
+    visibility = ["//visibility:public"],
+)
+
+# Graphics library with SDL2 support
+cc_library(
+    name = "graphics",
+    srcs = [
+        "src/graphics/graphics.cpp",
+    ],
+    hdrs = glob([
+        "include/graphics/**/*.hpp",
+    ]),
+    strip_include_prefix = "include",
+    deps = [
+        "//events",
+        "@fmt//:fmt",
+        "@spdlog//:spdlog",
+    ] + select({
+        ":raspberry_pi": ["@rpi_rgb_led_matrix//:librgbmatrix"],
+        "//conditions:default": ["@sdl2//:sdl2"],
+    }),
+    data = [
+        ":media_resources",
+    ],
+    copts = [
+        "-std=c++17",
+    ] + select({
+        ":raspberry_pi": ["-DRASPBERRY_PI"],
+        "//conditions:default": [],
+    }),
+    linkopts = select({
+        "@platforms//os:macos": [
+            "-L/opt/homebrew/opt/sdl2/lib",
+            "-lSDL2",
+        ],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:public"],
+)
+
+# Media library that combines audio and graphics
+cc_library(
+    name = "media",
+    deps = [
+        ":audio",
+        ":graphics",
+    ],
+    visibility = ["//visibility:public"],
+)

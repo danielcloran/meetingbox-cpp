@@ -13,32 +13,19 @@ HotwordDetectedProcess::HotwordDetectedProcess(int processId, int screenId, Json
                              { state = State::IDLE; });
 }
 
-void HotwordDetectedProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed)
+void HotwordDetectedProcess::draw(long long timeElapsed)
 {
     switch (state)
     {
     case State::LISTENING:
-        // draw 12 dots in a circle around the center of the screen
-        SDL_SetRenderDrawColor(renderer, 200, 0, 0, 255);
-        // SDL_RenderClear(renderer);
-        SDL_RenderDrawLine(renderer, 0, 31, 63, 31);
-
-        SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
-        for (int i = 0; i < 12; i++)
-        {
-            int x = size.w / 2 + 26 * cos(i * 2 * M_PI / 12);
-            int y = size.h / 2 + 26 * sin(i * 2 * M_PI / 12);
-            SDL_RenderDrawPoint(renderer, x - 1, y - 1);
-        }
-
+        graphics::display_message("Listening...");
         break;
     case State::PROCESSESING:
-        // RotatingColors(renderer, size, timeElapsed);
+        graphics::display_message("Processing...");
         break;
     case State::IDLE:
     default:
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-        SDL_RenderClear(renderer);
+        graphics::display_message("Idle");
         break;
     };
 }
