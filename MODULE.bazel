@@ -20,7 +20,7 @@ http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "ht
 git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 # SDL2 for the desktop/headless paint path.
-# Linux: system libsdl2 (libsdl2-dev). macOS: external/SDL2.framework headers.
+# Not vendored: pkg-config finds system SDL2 (libsdl2-dev, or `brew install sdl2`).
 sdl2_repository = use_repo_rule("//third_party:sdl2.bzl", "sdl2_repository")
 
 sdl2_repository(

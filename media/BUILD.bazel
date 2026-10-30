@@ -95,13 +95,7 @@ cc_library(
         ":raspberry_pi": ["-DRASPBERRY_PI"],
         "//conditions:default": [],
     }),
-    linkopts = select({
-        "@platforms//os:macos": [
-            "-L/opt/homebrew/opt/sdl2/lib",
-            "-lSDL2",
-        ],
-        "//conditions:default": [],
-    }),
+    # @sdl2 linkopts come from pkg-config (system SDL2 on Linux and macOS).
     visibility = ["//visibility:public"],
 )
 
