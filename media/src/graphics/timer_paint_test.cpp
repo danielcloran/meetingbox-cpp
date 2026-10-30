@@ -80,10 +80,38 @@ void check_strip_and_box() {
   const graphics::Pixel blue{0, 0, 255};
   const graphics::Pixel off{0, 0, 0};
   const graphics::Pixel mid{0, 0, 125};
-  expect(at(full, 10, 0) == blue && at(full, 300, 63) == blue, "a full countdown fills the strip");
-  expect(at(half, 10, 0) == off, "half countdown clears the top row");
-  expect(at(half, 10, 63) == mid, "half countdown leaves the bottom row mid blue");
-  expect(at(empty, 10, 63) == off, "a finished countdown is black");
+  // Side faces (panels 0-3) share the row-fade. x=300 is on the lid.
+  expect(at(full, 10, 0) == blue && at(full, 200, 63) == blue,
+         "a full countdown fills the side faces");
+  expect(at(half, 10, 0) == off, "half countdown clears the side top row");
+  expect(at(half, 10, 63) == mid, "half countdown leaves the side bottom row mid blue");
+  expect(at(empty, 10, 63) == off, "a finished side face is black");
+  for (int panel = 0; panel < graphics::kTimeboxTopPanel; ++panel) {
+    const int x = panel * graphics::kPanelSize + 8;
+    expect(at(half, x, 63) == mid, "every side face shows the same countdown");
+    expect(at(half, x, 63) != at(half, graphics::kTimeboxTopPanel * graphics::kPanelSize + 8, 63),
+           "the lid is not a copy of the side countdown");
+  }
+  const int lid = graphics::kTimeboxTopPanel * graphics::kPanelSize;
+  const int bar_y = graphics::kTimeboxLidBarY + graphics::kTimeboxLidBarH / 2;
+  const int bar_left = lid + graphics::kTimeboxLidBarInset;
+  const int bar_far = bar_left + 40;
+  expect(at(full, bar_left, bar_y) == graphics::kTimeboxLidFill, "a full lid bar is filled");
+  expect(at(full, bar_far, bar_y) == graphics::kTimeboxLidFill, "a full lid bar reaches the far end");
+  expect(at(half, bar_left, bar_y) == graphics::kTimeboxLidFill, "half remaining still lights the start of the bar");
+  expect(at(half, bar_far, bar_y) == graphics::kTimeboxLidTrack, "half remaining leaves the far end of the bar dark");
+  expect(at(empty, bar_left, bar_y) == graphics::kTimeboxLidTrack, "a finished lid bar is only the track");
+  const int lamp_x = lid + (graphics::kPanelSize - graphics::kTimeboxLidLamp) / 2 + 2;
+  const int lamp_y = graphics::kTimeboxLidLampY + 2;
+  expect(at(full, lamp_x, lamp_y) == graphics::kTimeboxLidInMeeting, "the lid lamp is in-meeting green");
+  expect(at(half, lamp_x, lamp_y) == graphics::kTimeboxLidInMeeting, "halfway the lid lamp is still in meeting");
+  expect(at(empty, lamp_x, lamp_y) == graphics::kTimeboxLidOver, "a finished meeting turns the lid lamp red");
+  graphics::GraphicsContext ending(LED_WIDTH, LED_HEIGHT);
+  graphics::paint_timebox_timer(ending, 1000, 10000);
+  expect(at(ending, lamp_x, lamp_y) == graphics::kTimeboxLidEnding,
+         "the last quarter turns the lid lamp amber");
+  expect(at(full, bar_left, bar_y) != at(full, 10, bar_y),
+         "the lid bar is not the side-face blue");
   expect(count_diff(full, half) > 1000, "full and half frames differ across the strip");
   expect(count_diff(half, empty) > 1000, "half and empty frames differ across the strip");
 
@@ -93,7 +121,7 @@ void check_strip_and_box() {
   graphics::paint_box_layout(half, half_box);
 
   const int face_rows[] = {0, 63};
-  const int panels[] = {0, 1, 2, 3, 4};
+  const int panels[] = {0, 1, 2, 3, graphics::kTimeboxTopPanel};
   for (int panel : panels) {
     for (int row : face_rows) {
       int box_x = 0;
@@ -108,6 +136,16 @@ void check_strip_and_box() {
   }
   expect(at(half_box, 0, 0) == graphics::kBoxBackground, "corner stays the box background");
   expect(at(half_box, 160, 160) == graphics::kBoxBackground, "opposite corner stays empty");
+  int lid_box_x = 0;
+  int lid_box_y = 0;
+  int side_box_x = 0;
+  int side_box_y = 0;
+  expect(box_for_strip(bar_far, bar_y, lid_box_x, lid_box_y), "lid bar maps onto the cross");
+  expect(box_for_strip(10, bar_y, side_box_x, side_box_y), "side face maps onto the cross");
+  expect(at(half_box, lid_box_x, lid_box_y) == graphics::kTimeboxLidTrack,
+         "the unfolded lid shows the unfilled end of the status bar");
+  expect(at(half_box, side_box_x, side_box_y) != at(half_box, lid_box_x, lid_box_y),
+         "on the box, the lid is not the same pixels as a side face");
   expect(count_diff(full_box, half_box) > 1000, "the unfolded box changes as the timer drops");
 
   setenv("SDL_VIDEODRIVER", "dummy", 1);
@@ -192,6 +230,9 @@ void check_live_clock() {
   const int total = timer.total_ms();
   InterruptTimer clock;
   clock.setFrameRate(20);
+  clock.tick(0);
+  events::queue.process();
+  const auto before = graphics::context_->get_pixels();
   std::thread ticker([&clock] { clock.update(); });
   const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
   while (timer.remaining_ms() == total &&
@@ -208,18 +249,8 @@ void check_live_clock() {
   const int remaining = timer.remaining_ms();
   expect(remaining < total, "InterruptTimer::update advances the meeting");
   expect(remaining > total - 5000, "a short live run does not skip the meeting");
-  if (remaining < total) {
-    const auto &pixels = graphics::context_->get_pixels();
-    bool changed = false;
-    const graphics::Pixel full{0, 0, 255};
-    for (const auto &pixel : pixels) {
-      if (pixel != full) {
-        changed = true;
-        break;
-      }
-    }
-    expect(changed, "live ticks change painted pixels before the meeting ends");
-  }
+  expect(graphics::context_->get_pixels() != before,
+         "live ticks change the painted faces");
 }
 
 }  // namespace
