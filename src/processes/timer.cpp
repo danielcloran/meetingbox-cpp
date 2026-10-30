@@ -87,7 +87,7 @@ TimerProcess::TimerProcess(int processId, int screenId, Json::Value info) : Proc
     clearRow = 0;
 }
 
-void TimerProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed)
+void TimerProcess::draw(long long timeElapsed)
 {
     timeRemaining += -(timeElapsed);
     timerPercentage = (timeRemaining / float(timerInitialDuration));
@@ -97,19 +97,9 @@ void TimerProcess::draw(SDL_Renderer *renderer, SDL_Rect size, long long timeEla
     if (timerPercentage > 1.0f)
         timerPercentage = 1.0f;
 
-    for (int row = 0; row < size.h; ++row)
-    {
-        float rowPercentage = (size.h - row) / (float)(size.h);
-        float brightness = 1.0f - (1.0f - timerPercentage) / (1.0f - rowPercentage);
-
-        if (brightness < 0.0f)
-            brightness = 0.0f;
-        if (brightness > 1.0f)
-            brightness = 1.0f;
-
-        SDL_SetRenderDrawColor(renderer, 0, 0, 255 * brightness, 255);
-        SDL_RenderDrawLine(renderer, 0, row, size.w - 1, row);
-    }
+    // Simple timer display using graphics::display_message
+    std::string timerText = "Timer: " + std::to_string((int)(timerPercentage * 100)) + "%";
+    graphics::display_message(timerText);
 
     if (timeRemaining < 0)
         deleteMe();

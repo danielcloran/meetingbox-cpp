@@ -29,7 +29,7 @@ public:
     Process(int processId, int screenId, Json::Value info) : listeners(events::queue)
     {
         id = processId;
-        screenId = screenId;
+        this->screenId = screenId;
         if (info["name"] != Json::Value::null)
             name = info["name"].asString();
         else
@@ -49,16 +49,10 @@ private:
         if (!visible || deleted)
             return;
 
-        ProcessScreen screen = graphics::get_process_screen(screenId);
-        if (screen.renderer == nullptr)
-        {
-            std::cerr << "Error, screen is null on process " << id << " with name" << name << std::endl;
-            return;
-        }
         const DrawEvent *drawEvent = static_cast<const DrawEvent *>(theEvent.get());
-        draw(screen.renderer, Screen::screen_sizes_.at(screen.screen_type), drawEvent->getTimeElapsed());
+        draw(drawEvent->getTimeElapsed());
     }
-    virtual void draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed)
+    virtual void draw(long long timeElapsed)
     {
         std::cout << "Error, Draw calling in Base Class Process";
     };

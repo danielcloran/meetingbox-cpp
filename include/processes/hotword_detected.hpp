@@ -8,9 +8,10 @@ class HotwordDetectedProcess : public Process
 {
 public:
     HotwordDetectedProcess(int processId, int screenId, Json::Value info);
+    virtual ~HotwordDetectedProcess() = default;
 
 private:
-    void draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed) override;
+    void draw(long long timeElapsed) override;
 
     enum State
     {

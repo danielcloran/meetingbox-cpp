@@ -1,2 +1,8 @@
 build/
 libs/
+.bazel
+bazel-*
+
+# Do not commit downloaded or vendored deps (including any local SDL framework).
+# Bazel fetches SDL2 and the other modules.
+external/

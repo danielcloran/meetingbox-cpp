@@ -1,0 +1,137 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+# Reference to the Raspberry Pi config setting
+config_setting(
+    name = "raspberry_pi",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+    ],
+)
+
+
+# Create a filegroup for media resources
+filegroup(
+    name = "media_resources",
+    srcs = glob([
+        "*.png",
+        "*.gif",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
+# Audio library with Porcupine support
+cc_library(
+    name = "audio",
+    srcs = [
+        "src/audio/audio.cpp",
+    ],
+    hdrs = glob([
+        "include/audio/**/*.hpp",
+    ]),
+    strip_include_prefix = "include",
+    deps = [
+        "//events",
+        "@pocketsphinx//:pocketsphinx",
+        "@fmt//:fmt",
+        "@spdlog//:spdlog",
+    ] + select({
+        "//conditions:default": [
+            "@sdl2//:sdl2",
+        ],
+        ":raspberry_pi": [],
+    }),
+    data = [
+        "@pocketsphinx//:model_en_us",
+        "@pocketsphinx//:dict_en_us",
+    ],
+    copts = [
+        "-std=c++17",
+    ] + select({
+        "@platforms//cpu:aarch64": ["-DRASPBERRY_PI"],
+        "//conditions:default": [],
+    }),
+    linkopts = select({
+        ":raspberry_pi": ["-lSDL2"],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:public"],
+)
+
+cc_binary(
+    name = "media_demo",
+    srcs = ["src/demo.cpp"],
+    deps = [":media"],
+    visibility = ["//visibility:public"],
+)
+
+# Graphics library with SDL2 support
+cc_library(
+    name = "graphics",
+    srcs = [
+        "src/graphics/box_layout.cpp",
+        "src/graphics/graphics.cpp",
+    ],
+    hdrs = glob([
+        "include/graphics/**/*.hpp",
+    ]),
+    strip_include_prefix = "include",
+    deps = [
+        "//events",
+        "@fmt//:fmt",
+        "@spdlog//:spdlog",
+    ] + select({
+        ":raspberry_pi": ["@rpi_ws281x//:ws2811"],
+        "//conditions:default": ["@sdl2//:sdl2"],
+    }),
+    data = [
+        ":media_resources",
+    ],
+    copts = [
+        "-std=c++17",
+    ] + select({
+        ":raspberry_pi": ["-DRASPBERRY_PI"],
+        "//conditions:default": [],
+    }),
+    # SDL2 is the Bazel-built static library (@sdl2). No system SDL package.
+    visibility = ["//visibility:public"],
+)
+
+# Media library that combines audio and graphics
+cc_library(
+    name = "media",
+    deps = [
+        ":audio",
+        ":graphics",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Standalone graphics test binary.
+# Windowed: opens an SDL window (use xvfb-run if there is no display).
+# Headless: `bazel run //media:graphics_test -- --headless --ppm=/tmp/box.ppm`
+cc_binary(
+    name = "graphics_test",
+    srcs = [
+        "src/graphics/box_layout_spec.hpp",
+        "src/graphics/graphics_test_main.cpp",
+    ],
+    copts = ["-std=c++17"],
+    deps = [":graphics"],
+    visibility = ["//visibility:public"],
+)
+
+# Proves the five LED faces land on the unfolded cross, including an SDL
+# software-renderer readback (SDL_VIDEODRIVER=dummy, no window and no xvfb).
+cc_test(
+    name = "box_layout_test",
+    size = "small",
+    srcs = [
+        "src/graphics/box_layout_spec.hpp",
+        "src/graphics/box_layout_test.cpp",
+    ],
+    copts = ["-std=c++17"],
+    deps = [":graphics"],
+)

@@ -66,7 +66,7 @@ void ProcessManager::handleCreateProcessEvent(events::EventPointer theEvent) {
     ProcessType processType = static_cast<ProcessType>(createEvent->getProcessType());
     Json::Value info = createEvent->getInfo();
 
-    int screenId = graphics::add_process_screen(Screen::MIMICK_SIDES);
+    int screenId = 0; // Simple screen ID for now
     std::shared_ptr<Process> newProcess = create_process(processType, processId, screenId, info);
 
     processes[processId++] = newProcess;
@@ -79,7 +79,7 @@ void ProcessManager::handleDeleteProcessEvent(events::EventPointer theEvent) {
     const DeleteProcessEvent * deleteEvent = static_cast<const DeleteProcessEvent *>(theEvent.get());
 
     int id = deleteEvent->getId();
-    graphics::remove_process_screen(processes[id]->screenId);
+    // Simple screen removal - no action needed for now
     processes.erase(id);
 
     std::cout << "Deleted process: " << id << std::endl;

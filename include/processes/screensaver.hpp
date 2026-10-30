@@ -17,10 +17,11 @@ class ScreensaverProcess : public Process
 {
 public:
     ScreensaverProcess(int processId, int screenId, Json::Value info);
+    virtual ~ScreensaverProcess() = default;
     const ProcessType type = ProcessType::SCREENSAVER;
 
 private:
-    void draw(SDL_Renderer *renderer, SDL_Rect size, long long timeElapsed) override;
+    void draw(long long timeElapsed) override;
     ScreensaverTypes defaultSaver = ScreensaverTypes::SOLID_COLOR;
 };
 

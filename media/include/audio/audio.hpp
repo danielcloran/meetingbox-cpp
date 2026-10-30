@@ -1,33 +1,23 @@
-#ifndef AUDIO_HPP
-#define AUDIO_HPP
+#ifndef AUDIO_SIMPLE_HPP
+#define AUDIO_SIMPLE_HPP
 
-#include "pv_porcupine.h"
-#include <SDL2/SDL.h>
-
+#include <pocketsphinx.h>
 #include <stdio.h>
 #include <thread>
 
-namespace audio
-{
-    void initialize();
-    void quit();
+namespace audio {
+void initialize();
+void quit();
 
-    namespace internal
-    {
-        static const char *ACCESS_KEY = "kjLI4wtcCkXEIaTxuYEi5AU6XbcGC+/3szekfDPquOqDnAJlI9BciQ==";
-        const char *model_file_path = "../media/src/audio/hotword_models/porcupine_params.pv";
-        const float sensitivity = 0.9f;
-        pv_porcupine_t *porcupine;
+namespace internal {
+extern ps_decoder_t *ps_decoder;
+extern ps_config_t *ps_config;
 
-#ifdef __APPLE__
-        const char *keyword_file_path = "../media/src/audio/hotword_models/Meeting-Box_en_mac_v2_2_0.ppn";
-#elif __linux__
-        const char *keyword_file_path = "../media/src/audio/hotword_models/Meeting-Box_en_raspberry-pi_v2_2_0.ppn";
-#endif
+// Simple audio capture without SDL2
+void start_audio_capture();
+void stop_audio_capture();
+void process_audio_data_simple();
+} // namespace internal
+} // namespace audio
 
-        SDL_AudioDeviceID audio_device_id;
-        void process_audio_data(void *userdata, Uint8 *stream, int len);
-    }
-}
-
-#endif // AUDIO_HPP
+#endif // AUDIO_SIMPLE_HPP

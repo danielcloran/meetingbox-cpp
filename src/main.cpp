@@ -1,6 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <signal.h>
 
 #include "graphics/graphics.hpp"
 #include "events/event_queue.hpp"
@@ -20,10 +21,7 @@ int main()
 {
     signal(SIGINT, interruptHandler);
 
-    if (SDL_Init(SDL_INIT_EVERYTHING & ~SDL_INIT_VIDEO) < 0)
-    {
-        std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
-    }
+    std::cout << "Starting MeetingBox..." << std::endl;
 
     events::initialize();
     audio::initialize();
