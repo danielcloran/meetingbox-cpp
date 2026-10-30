@@ -3,6 +3,6 @@ libs/
 .bazel
 bazel-*
 
-# Vendored deps stay out of git. Bazel fetches modules; SDL2 comes from the
-# system (libsdl2-dev on Linux, `brew install sdl2` on macOS).
+# Do not commit downloaded or vendored deps (including any local SDL framework).
+# Bazel fetches SDL2 and the other modules.
 external/

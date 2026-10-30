@@ -95,7 +95,7 @@ cc_library(
         ":raspberry_pi": ["-DRASPBERRY_PI"],
         "//conditions:default": [],
     }),
-    # @sdl2 linkopts come from pkg-config (system SDL2 on Linux and macOS).
+    # SDL2 is the Bazel-built static library (@sdl2). No system SDL package.
     visibility = ["//visibility:public"],
 )
 

@@ -6,7 +6,7 @@
 #include <memory>
 #include <cstdint>
 #include <atomic>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 // LED Matrix dimensions. Five 64x64 panels in one horizontal strip.
 const int LED_WIDTH = 320;
