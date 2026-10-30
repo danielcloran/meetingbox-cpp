@@ -2,3 +2,6 @@ build/
 libs/
 .bazel
 bazel-*
+
+# Mac-local SDL; Linux agents use system/apt SDL2
+external/SDL2.framework/

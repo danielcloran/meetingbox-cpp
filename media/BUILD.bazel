@@ -11,14 +11,6 @@ config_setting(
     ],
 )
 
-# Create filegroups for porcupine hotword model files
-filegroup(
-    name = "hotword_models",
-    srcs = glob([
-        "src/audio/hotword_models/*",
-    ]),
-    visibility = ["//visibility:public"],
-)
 
 # Create a filegroup for media resources
 filegroup(
@@ -42,18 +34,18 @@ cc_library(
     strip_include_prefix = "include",
     deps = [
         "//events",
-        "@porcupine//:headers",
+        "@pocketsphinx//:pocketsphinx",
         "@fmt//:fmt",
         "@spdlog//:spdlog",
     ] + select({
-        ":raspberry_pi": ["@porcupine//:rpi_lib"],
         "//conditions:default": [
-            "@porcupine//:mac_lib",
             "@sdl2//:sdl2",
         ],
+        ":raspberry_pi": [],
     }),
     data = [
-        ":hotword_models",
+        "@pocketsphinx//:model_en_us",
+        "@pocketsphinx//:dict_en_us",
     ],
     copts = [
         "-std=c++17",
@@ -90,7 +82,7 @@ cc_library(
         "@fmt//:fmt",
         "@spdlog//:spdlog",
     ] + select({
-        ":raspberry_pi": ["@rpi_rgb_led_matrix//:librgbmatrix"],
+        ":raspberry_pi": ["@rpi_ws281x//:ws2811"],
         "//conditions:default": ["@sdl2//:sdl2"],
     }),
     data = [
@@ -119,5 +111,13 @@ cc_library(
         ":audio",
         ":graphics",
     ],
+    visibility = ["//visibility:public"],
+)
+
+# Standalone graphics test binary
+cc_binary(
+    name = "graphics_test",
+    srcs = ["src/graphics/graphics_test_main.cpp"],
+    deps = [":graphics"],
     visibility = ["//visibility:public"],
 )

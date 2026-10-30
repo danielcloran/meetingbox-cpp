@@ -28,25 +28,21 @@ local_repository(
     path = "external/SDL2.framework",
 )
 
-# rpi-rgb-led-matrix for Raspberry Pi LED matrix control
+# rpi_ws281x library for WS2812B LED control
 git_repository(
-    name = "rpi_rgb_led_matrix",
-    remote = "https://github.com/hzeller/rpi-rgb-led-matrix.git",
-    tag = "v1.0",
+    name = "rpi_ws281x",
+    remote = "https://github.com/jgarff/rpi_ws281x.git",
+    commit = "7fc8914ba08f862351ab64c810c9d31190cf6c1a",  # Pin to a recent commit
     build_file_content = """
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "librgbmatrix",
-    srcs = glob(["lib/*.cc"]),
-    hdrs = glob(["include/*.h"]),
-    includes = ["include"],
-    linkopts = select({
-        "@platforms//os:linux": ["-lrt", "-lm", "-lpthread"],
-        "//conditions:default": [],
-    }),
+    name = "ws2811",
+    srcs = glob(["*.c"]),
+    hdrs = glob(["*.h"]),
+    includes = ["."],
     visibility = ["//visibility:public"],
 )
 """,
@@ -90,36 +86,11 @@ cc_library(
 """,
 )
 
-# Picovoice Porcupine hotword detection SDK.
-git_repository(
-    name = "porcupine",
-    remote = "https://github.com/Picovoice/porcupine.git",
-    tag = "v3.0",
-    build_file_content = """
-load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library")
-
-package(default_visibility = ["//visibility:public"])
-
-cc_library(
-    name = "headers",
-    hdrs = glob(["include/*.h"]),
-    includes = ["include"],
-)
-
-cc_import(
-    name = "mac_lib",
-    shared_library = select({
-        "@platforms//cpu:x86_64": "lib/mac/x86_64/libpv_porcupine.dylib",
-        "@platforms//cpu:arm64": "lib/mac/arm64/libpv_porcupine.dylib",
-        "//conditions:default": "lib/mac/x86_64/libpv_porcupine.dylib",
-    }),
-    deps = [":headers"],
-)
-
-cc_import(
-    name = "rpi_lib",
-    shared_library = "lib/raspberry-pi/cortex-a72-aarch64/libpv_porcupine.so",
-    deps = [":headers"],
-)
-""",
+# PocketSphinx (v5.0.3)
+http_archive(
+    name = "pocketsphinx",
+    build_file = "//third_party:pocketsphinx.BUILD",
+    sha256 = "5d952cb1c22e0a51ed1fafc36871612df38f145df64fa017fdc8074532ec007f",
+    strip_prefix = "pocketsphinx-5.0.3",
+    urls = ["https://github.com/cmusphinx/pocketsphinx/archive/refs/tags/v5.0.3.tar.gz"],
 )

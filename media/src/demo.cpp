@@ -9,7 +9,21 @@
 #include <limits.h>
 #include <unistd.h>
 
+#include <atomic>
+#include <csignal>
+
+std::atomic<bool> running(true);
+
+void signal_handler(int signal) {
+  if (signal == SIGINT) {
+    std::cout << "\nReceived SIGINT. Exiting..." << std::endl;
+    running = false;
+  }
+}
+
 int main(int argc, char **argv) {
+  std::signal(SIGINT, signal_handler);
+
   char cwd[PATH_MAX];
   if (getcwd(cwd, sizeof(cwd)) != NULL) {
     std::cout << "Current working dir: " << cwd << std::endl;
@@ -17,16 +31,16 @@ int main(int argc, char **argv) {
     std::cerr << "getcwd() error" << std::endl;
   }
   std::cout << "Starting Media Demo (Hotword Detection)..." << std::endl;
-  std::cout << "Say 'MeetingBox' to test detection." << std::endl;
+  std::cout << "Say 'Box' to test detection." << std::endl;
 
   // Initialize audio system
-  // This should start the audio capture thread and Porcupine
+  // This should start the audio capture thread and PocketSphinx
   audio::initialize();
 
   // Keep the main thread alive to allow audio processing
   std::cout << "Press Ctrl+C to exit." << std::endl;
-  while (true) {
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+  while (running) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   audio::quit();

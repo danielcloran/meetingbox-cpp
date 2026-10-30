@@ -6,6 +6,11 @@
 #include <fstream>
 #include <iostream>
 #include <thread>
+#include <vector>
+
+#ifdef RASPBERRY_PI
+#include <ws2811.h>
+#endif
 
 namespace graphics {
 // GraphicsContext implementation
@@ -88,12 +93,20 @@ void SDL2Renderer::init() {
     return;
   }
 
-  // Create a window to display 5 panels (64x64 each) side-by-side
-  // Total width: 5 * 64 = 320 pixels, scale up for visibility
-  int scale = 4; // Scale factor for visibility
-  window_ = SDL_CreateWindow("MeetingBox LED Matrix", SDL_WINDOWPOS_UNDEFINED,
-                             SDL_WINDOWPOS_UNDEFINED, LED_WIDTH * scale,
-                             LED_HEIGHT * scale, SDL_WINDOW_SHOWN);
+  // Create a window for the Box Layout (Cross shape)
+  // Grid: 3x3 of 64x64 panels
+  //   . T .
+  //   L F R
+  //   . B .
+  // Width: 3 * 64
+  // Height: 3 * 64
+  int scale = 3; // Scale factor for visibility
+  int window_w = 3 * 64 * scale;
+  int window_h = 3 * 64 * scale;
+
+  window_ = SDL_CreateWindow("MeetingBox LED Matrix (Dev)",
+                             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                             window_w, window_h, SDL_WINDOW_SHOWN);
   if (!window_) {
     std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError()
               << std::endl;
@@ -110,9 +123,10 @@ void SDL2Renderer::init() {
     return;
   }
 
-  // Set up scaling
-  SDL_RenderSetLogicalSize(renderer_, LED_WIDTH, LED_HEIGHT);
-  SDL_SetRenderDrawColor(renderer_, 0x00, 0x00, 0x00, 0xFF); // Black background
+  // Set logical size to match the 3x3 grid (192x192)
+  SDL_RenderSetLogicalSize(renderer_, 192, 192);
+  SDL_SetRenderDrawColor(renderer_, 0x10, 0x10, 0x10,
+                         0xFF); // Dark gray background
 
   std::cout << "SDL2 renderer initialized successfully." << std::endl;
 }
@@ -121,30 +135,54 @@ void SDL2Renderer::draw(const GraphicsContext &context) {
   if (!renderer_)
     return;
 
+  SDL_SetRenderDrawColor(renderer_, 0x10, 0x10, 0x10, 0xFF);
   SDL_RenderClear(renderer_);
 
-  // Create texture from pixel data
-  if (!texture_) {
-    texture_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_RGB24,
-                                 SDL_TEXTUREACCESS_STREAMING,
-                                 context.get_width(), context.get_height());
-  }
+  // We need to map the linear 320x64 context to the 5 separate panels in the
+  // cross layout Context Layout: [Top][Left][Front][Right][Back] (Assuming 64
+  // pixels per panel) HOWEVER, the legacy mapping seemed to imply: Panel 0
+  // (0-63): Left Panel 1 (64-127): Front Panel 2 (128-191): Right Panel 3
+  // (192-255): Back Panel 4 (256-319): Top Let's stick to this deduction for
+  // now.
 
-  if (texture_) {
-    // Update texture with pixel data
-    SDL_UpdateTexture(texture_, NULL, context.get_pixels().data(),
-                      context.get_width() * sizeof(Pixel));
+  const auto &pixels = context.get_pixels();
+  int panel_width = 64;
+  int panel_height = 64;
 
-    // Render the texture
-    SDL_RenderCopy(renderer_, texture_, NULL, NULL);
-  }
+  auto draw_panel = [&](int panel_idx, int dest_x, int dest_y) {
+    int start_x = panel_idx * panel_width;
 
-  // Draw panel separators
-  SDL_SetRenderDrawColor(renderer_, 0x40, 0x40, 0x40, 0xFF); // Gray separators
-  for (int i = 1; i < LED_PANELS; ++i) {
-    int x = i * 64;
-    SDL_RenderDrawLine(renderer_, x, 0, x, LED_HEIGHT);
-  }
+    for (int y = 0; y < panel_height; ++y) {
+      for (int x = 0; x < panel_width; ++x) {
+        int src_idx = y * context.get_width() + (start_x + x);
+        if (src_idx < pixels.size()) {
+          const auto &p = pixels[src_idx];
+          SDL_SetRenderDrawColor(renderer_, p.r, p.g, p.b, 0xFF);
+          SDL_RenderDrawPoint(renderer_, dest_x + x, dest_y + y);
+        }
+      }
+    }
+    // Draw border
+    SDL_SetRenderDrawColor(renderer_, 0x40, 0x40, 0x40, 0xFF);
+    SDL_Rect border = {dest_x, dest_y, panel_width, panel_height};
+    SDL_RenderDrawRect(renderer_, &border);
+  };
+
+  // Draw panels in cross layout
+  // Row 0: Top (Panel 4) at (64, 0)
+  draw_panel(4, 64, 0);
+
+  // Row 1: Left (Panel 0) at (0, 64)
+  draw_panel(0, 0, 64);
+
+  // Row 1: Front (Panel 1) at (64, 64)
+  draw_panel(1, 64, 64);
+
+  // Row 1: Right (Panel 2) at (128, 64)
+  draw_panel(2, 128, 64);
+
+  // Row 2: Back (Panel 3) at (64, 128)
+  draw_panel(3, 64, 128);
 
   SDL_RenderPresent(renderer_);
   frame_count_++;
@@ -177,52 +215,87 @@ bool SDL2Renderer::should_close() {
   return quit_;
 }
 
-void SDL2Renderer::draw_led_panels(const GraphicsContext &context) {
-  // This is handled in the main draw() method
-}
-
+void SDL2Renderer::draw_led_panels(const GraphicsContext &context) {}
 void SDL2Renderer::draw_single_panel(const GraphicsContext &context,
-                                     int panel_index, int x_offset) {
-  // This is handled in the main draw() method
-}
+                                     int panel_index, int x_offset) {}
 
 // RpiRenderer implementation
 RpiRenderer::RpiRenderer() : matrix_(nullptr) {}
 
 RpiRenderer::~RpiRenderer() { cleanup(); }
 
+#ifdef RASPBERRY_PI
+// Global ws2811_t structure for RPi
+ws2811_t output;
+#endif
+
 void RpiRenderer::init() {
-  std::cout << "Initializing Raspberry Pi LED matrix renderer..." << std::endl;
-  // TODO: Initialize rpi-rgb-led-matrix here
-  // RGBMatrix::Options options;
-  // options.rows = 64;
-  // options.cols = 64;
-  // matrix_ = rgb_matrix::CreateMatrixFromOptions(options);
+  std::cout << "Initializing Raspberry Pi LED matrix renderer (WS2811)..."
+            << std::endl;
+#ifdef RASPBERRY_PI
+  // Initialize ws2811 structure
+  output.freq = WS2811_TARGET_FREQ;
+  output.dmanum = 10;
+
+  // Setup Channel 0
+  output.channel[0].gpionum = 18; // Default to GPIO 18 (PWM0)
+  output.channel[0].count =
+      LED_WIDTH * LED_HEIGHT; // Total LEDs? Or per string?
+  // Warning: 320*64 = 20480 LEDs is HUGE for a single channel.
+  // Assuming the user's HAT handles parallel mapping or they have a specific
+  // config. For now, mapping all onto channel 0 as a single stream.
+  output.channel[0].invert = 0;
+  output.channel[0].brightness = 255;
+  output.channel[0].strip_type = WS2811_STRIP_GRB; // Typical for WS2812B
+
+  // Disable Channel 1
+  output.channel[1].gpionum = 0;
+  output.channel[1].count = 0;
+  output.channel[1].invert = 0;
+  output.channel[1].brightness = 0;
+
+  ws2811_return_t ret = ws2811_init(&output);
+  if (ret != WS2811_SUCCESS) {
+    std::cerr << "ws2811_init failed: " << ws2811_get_return_t_str(ret)
+              << std::endl;
+    return;
+  }
+  std::cout << "ws2811 initialized successfully." << std::endl;
+#else
+  std::cout << "Not running on RPi, skipping ws2811 init." << std::endl;
+#endif
 }
 
 void RpiRenderer::draw(const GraphicsContext &context) {
-  // TODO: Render context pixels to LED matrix
-  // if (matrix_) {
-  //     FrameCanvas* canvas = matrix_->CreateFrameCanvas();
-  //     for (int y = 0; y < context.get_height(); ++y) {
-  //         for (int x = 0; x < context.get_width(); ++x) {
-  //             const Pixel& p = context.get_pixels()[y * context.get_width() +
-  //             x]; canvas->SetPixel(x, y, p.r, p.g, p.b);
-  //         }
-  //     }
-  //     matrix_->SwapOnVSync(canvas);
-  // }
-  std::cout << "RPi rendering frame..." << std::endl;
+#ifdef RASPBERRY_PI
+  // Map context pixels to ws2811 channel 0
+  // This is a direct mapping. If a custom mapper is needed (like the legacy
+  // code had), it would go here.
+
+  const auto &pixels = context.get_pixels();
+  int count = std::min((int)pixels.size(), output.channel[0].count);
+
+  for (int i = 0; i < count; ++i) {
+    const auto &p = pixels[i];
+    // WS2811 uses 32-bit int: 0xWWRRGGBB
+    // We pack it according to strip type (library handles strip type mapping
+    // usually, but input to led_string is 0x00RRGGBB)
+    output.channel[0].leds[i] = (p.r << 16) | (p.g << 8) | p.b;
+  }
+
+  ws2811_return_t ret = ws2811_render(&output);
+  if (ret != WS2811_SUCCESS) {
+    std::cerr << "ws2811_render failed: " << ws2811_get_return_t_str(ret)
+              << std::endl;
+  }
+#endif
 }
 
 void RpiRenderer::cleanup() {
-  std::cout << "Quitting Raspberry Pi LED matrix renderer." << std::endl;
-  // TODO: Clean up rpi-rgb-led-matrix
-  // if (matrix_) {
-  //     matrix_->Stop();
-  //     delete matrix_;
-  //     matrix_ = nullptr;
-  // }
+  std::cout << "Cleaning up Raspberry Pi LED matrix renderer..." << std::endl;
+#ifdef RASPBERRY_PI
+  ws2811_fini(&output);
+#endif
 }
 
 // Global graphics functions
