@@ -128,33 +128,6 @@ bool write_animated_gif(const std::string &path,
     }
   }
 
-  std::vector<uint8_t> palette(256 * 3, 0);
-  std::unordered_map<uint32_t, int> index_of;
-  int color_count = 0;
-  auto color_index = [&](uint8_t r, uint8_t g, uint8_t b) -> int {
-    const uint32_t key = pack_rgb(r, g, b);
-    const auto found = index_of.find(key);
-    if (found != index_of.end())
-      return found->second;
-    if (color_count >= 256)
-      return -1;
-    const int index = color_count++;
-    palette[index * 3] = r;
-    palette[index * 3 + 1] = g;
-    palette[index * 3 + 2] = b;
-    index_of.emplace(key, index);
-    return index;
-  };
-
-  for (const auto &frame : frames) {
-    for (const graphics::Pixel &pixel : frame.get_pixels()) {
-      if (color_index(pixel.r, pixel.g, pixel.b) < 0) {
-        error = "timer frame uses more than 256 colors";
-        return false;
-      }
-    }
-  }
-
   const int width = src_w * scale;
   const int height = src_h * scale;
   std::ofstream out(path, std::ios::binary);
@@ -166,11 +139,11 @@ bool write_animated_gif(const std::string &path,
   out.write("GIF89a", 6);
   write_u16(out, width);
   write_u16(out, height);
-  out.put(static_cast<char>(0xF7));  // global color table, 256 entries
+  // No global color table. Each frame carries its own, because the spiral
+  // and the row-fade together use more than 256 blues across the whole run.
+  out.put(static_cast<char>(0x70));
   out.put(0);
   out.put(0);
-  out.write(reinterpret_cast<const char *>(palette.data()),
-            static_cast<std::streamsize>(palette.size()));
 
   // Loop forever.
   const unsigned char netscape[] = {
@@ -179,16 +152,44 @@ bool write_animated_gif(const std::string &path,
   out.write(reinterpret_cast<const char *>(netscape), sizeof(netscape));
 
   std::vector<uint8_t> indices(static_cast<size_t>(width) * height);
+  std::vector<uint8_t> palette(256 * 3, 0);
   for (size_t frame_i = 0; frame_i < frames.size(); ++frame_i) {
+    std::unordered_map<uint32_t, int> index_of;
+    int color_count = 0;
+    std::fill(palette.begin(), palette.end(), 0);
+    auto color_index = [&](uint8_t r, uint8_t g, uint8_t b) -> int {
+      const uint32_t key = pack_rgb(r, g, b);
+      const auto found = index_of.find(key);
+      if (found != index_of.end())
+        return found->second;
+      if (color_count >= 256)
+        return -1;
+      const int index = color_count++;
+      palette[index * 3] = r;
+      palette[index * 3 + 1] = g;
+      palette[index * 3 + 2] = b;
+      index_of.emplace(key, index);
+      return index;
+    };
+
     const auto &pixels = frames[frame_i].get_pixels();
-    for (int y = 0; y < height; ++y) {
+    bool too_many = false;
+    for (int y = 0; y < height && !too_many; ++y) {
       const int src_y = y / scale;
       for (int x = 0; x < width; ++x) {
         const int src_x = x / scale;
         const graphics::Pixel &pixel = pixels[src_y * src_w + src_x];
-        indices[static_cast<size_t>(y) * width + x] = static_cast<uint8_t>(
-            color_index(pixel.r, pixel.g, pixel.b));
+        const int index = color_index(pixel.r, pixel.g, pixel.b);
+        if (index < 0) {
+          too_many = true;
+          break;
+        }
+        indices[static_cast<size_t>(y) * width + x] = static_cast<uint8_t>(index);
       }
+    }
+    if (too_many) {
+      error = "one timer frame uses more than 256 colors";
+      return false;
     }
 
     const int delay = frame_i + 1 == frames.size() ? hold_last_cs : delay_cs;
@@ -202,7 +203,9 @@ bool write_animated_gif(const std::string &path,
     write_u16(out, 0);
     write_u16(out, width);
     write_u16(out, height);
-    out.put(0x00);
+    out.put(static_cast<char>(0x87));  // local color table, 256 entries
+    out.write(reinterpret_cast<const char *>(palette.data()),
+              static_cast<std::streamsize>(palette.size()));
     out.put(8);  // LZW minimum code size
     write_subblocks(out, lzw_encode(indices));
   }

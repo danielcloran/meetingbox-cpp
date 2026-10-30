@@ -30,8 +30,10 @@ struct Options {
   bool headless = false;
   bool headless_set = false;
   bool realtime = false;
+  bool benchmark = false;
   int seconds = 0;
   int step_ms = 100;
+  bool step_set = false;
   std::string gif_path;
   std::string ppm_dir;
 };
@@ -47,13 +49,13 @@ void print_usage() {
       << "\n"
       << "  --headless   SDL software renderer, no window. This is the default\n"
       << "               when DISPLAY is unset, or when --gif / --ppm-dir is set.\n"
-      << "  --realtime   Drive the clock with InterruptTimer::update (wall clock).\n"
-      << "               Headless without --realtime steps the same tick by --step-ms\n"
-      << "               so the GIF is even and the command does not wait out the timer.\n"
+      << "  --realtime   Live present loop (also the default GIF). InterruptTimer\n"
+      << "               ticks every 20 ms and SDL presents on that same cadence.\n"
       << "  --seconds=N  Meeting length in seconds (headless default 8, window 60).\n"
-      << "  --step-ms=N  Headless frame step, or realtime capture interval (default 100).\n"
-      << "  --gif=PATH   Write a looping GIF of the unfolded box (scaled 3x).\n"
-      << "  --ppm-dir=P  Also write one 192x192 PPM per frame.\n";
+      << "  --step-ms=N  Stepped export only, not the live rate. One frame per step.\n"
+      << "  --benchmark  Time paint+present: tight, legacy 16ms sleep, and 20ms cadence.\n"
+      << "  --gif=PATH   Write a GIF of each live present (50 Hz, 20 ms per frame).\n"
+      << "  --ppm-dir=P  Also write one 192x192 PPM per recorded frame.\n";
 }
 
 bool take_value(int &i, int argc, char **argv, const std::string &flag,
@@ -110,6 +112,10 @@ bool parse_options(int argc, char **argv, Options &opt, bool &help,
       opt.realtime = true;
       continue;
     }
+    if (arg == "--benchmark") {
+      opt.benchmark = true;
+      continue;
+    }
     if (arg.rfind("--seconds", 0) == 0) {
       if (!take_value(i, argc, argv, "--seconds", value, error) ||
           !parse_int(value, opt.seconds)) {
@@ -126,6 +132,7 @@ bool parse_options(int argc, char **argv, Options &opt, bool &help,
           error = "--step-ms expects a positive number of milliseconds";
         return false;
       }
+      opt.step_set = true;
       continue;
     }
     if (arg.rfind("--gif", 0) == 0) {
@@ -196,6 +203,67 @@ bool write_frames(const Options &opt,
               << " (" << frames.size() << " frames, 576x576)\n";
   }
   return true;
+}
+
+// Times the current SDL present path. Tight = back-to-back draw+present.
+// Paced = the windowed loop's extra 16ms sleep after each present.
+int benchmark_present(int seconds) {
+  setenv("SDL_VIDEODRIVER", "dummy", 1);
+  graphics::SDL2Renderer renderer;
+  if (!renderer.init_capture()) {
+    std::cerr << "SDL headless init failed: " << SDL_GetError() << "\n";
+    return 1;
+  }
+  graphics::GraphicsContext strip(LED_WIDTH, LED_HEIGHT);
+  graphics::paint_timebox_timer(strip, 4000, 8000);
+
+  auto run = [&](bool paced, const char *label) {
+    const auto start = std::chrono::steady_clock::now();
+    const auto deadline = start + std::chrono::seconds(seconds);
+    int frames = 0;
+    double paint_ms = 0;
+    while (std::chrono::steady_clock::now() < deadline) {
+      const auto t0 = std::chrono::steady_clock::now();
+      renderer.draw(strip);
+      const auto t1 = std::chrono::steady_clock::now();
+      paint_ms += std::chrono::duration<double, std::milli>(t1 - t0).count();
+      ++frames;
+      if (paced) {
+        const auto wake = t1 + std::chrono::milliseconds(16);
+        if (wake > std::chrono::steady_clock::now())
+          std::this_thread::sleep_until(wake);
+      }
+    }
+    const double elapsed =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+    std::cout << "present " << label << ": " << frames << " frames in " << elapsed
+              << "s = " << (frames / elapsed) << " Hz, paint+present avg "
+              << (paint_ms / frames) << " ms\n";
+  };
+  run(false, "tight");
+  run(true, "legacy-sleep-16ms-after");
+
+  const auto start = std::chrono::steady_clock::now();
+  const auto deadline = start + std::chrono::seconds(seconds);
+  int frames = 0;
+  double paint_ms = 0;
+  constexpr int kPeriodMs = 20;
+  while (std::chrono::steady_clock::now() < deadline) {
+    const auto target = start + std::chrono::milliseconds(static_cast<long long>(frames + 1) * kPeriodMs);
+    const auto t0 = std::chrono::steady_clock::now();
+    renderer.draw(strip);
+    const auto t1 = std::chrono::steady_clock::now();
+    paint_ms += std::chrono::duration<double, std::milli>(t1 - t0).count();
+    ++frames;
+    if (t1 < target)
+      std::this_thread::sleep_until(target);
+  }
+  const double elapsed =
+      std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+  std::cout << "present cadence-20ms: " << frames << " frames in " << elapsed
+            << "s = " << (frames / elapsed) << " Hz, paint+present avg "
+            << (paint_ms / frames) << " ms\n";
+  return 0;
 }
 
 void log_remaining(const TimerProcess &timer) {
@@ -308,14 +376,35 @@ int run_headless(const Options &opt) {
   return 0;
 }
 
-int run_windowed(const Options &opt) {
-  graphics::initialize();
-  auto *sdl = dynamic_cast<graphics::SDL2Renderer *>(graphics::renderer_.get());
-  if (!sdl || !sdl->ready()) {
-    std::cerr << "SDL window failed to open. Re-run with --headless"
-              << " (no display required).\n";
-    graphics::quit();
-    return 1;
+// Live present period. GIF delays are integer centiseconds, so 20 ms (50 Hz)
+// is the 16 ms windowed target expressed as a rate the file can play back 1:1.
+// setFrameRate(50) is 1000/50 = 20 ms, the same tick.
+constexpr int kLivePeriodMs = 20;
+constexpr int kLiveHz = 1000 / kLivePeriodMs;
+
+int run_live(const Options &opt) {
+  const bool record = !opt.gif_path.empty() || !opt.ppm_dir.empty();
+  graphics::SDL2Renderer headless_renderer;
+  graphics::SDL2Renderer *sdl = nullptr;
+  if (opt.headless) {
+    setenv("SDL_VIDEODRIVER", "dummy", 1);
+    if (!headless_renderer.init_capture()) {
+      std::cerr << "SDL headless init failed: " << SDL_GetError() << "\n";
+      return 1;
+    }
+    sdl = &headless_renderer;
+    graphics::context_ =
+        std::make_unique<graphics::GraphicsContext>(LED_WIDTH, LED_HEIGHT);
+  } else {
+    graphics::initialize();
+    sdl = dynamic_cast<graphics::SDL2Renderer *>(graphics::renderer_.get());
+    if (!sdl || !sdl->ready()) {
+      std::cerr << "SDL window failed to open. Re-run with --headless"
+                << " (no display required).\n";
+      graphics::quit();
+      return 1;
+    }
+    std::cout << "TimeBox countdown on the LED faces. Close the window or press Ctrl+C.\n";
   }
 
   Json::Value info;
@@ -324,41 +413,109 @@ int run_windowed(const Options &opt) {
   TimerProcess timer(1, 0, info);
   if (timer.total_ms() <= 0) {
     std::cerr << "Timer duration is 0\n";
-    graphics::quit();
+    if (!opt.headless)
+      graphics::quit();
     return 1;
   }
 
-  InterruptTimer clock;
-  clock.setFrameRate(30);
-  clock.tick(0);
-  events::queue.process();
-  sdl->draw(*graphics::context_);
+  const int frame_cap = opt.seconds * kLiveHz + 8;
+  if (record && frame_cap > 800) {
+    std::cerr << "Refusing to record about " << frame_cap
+              << " live frames. Lower --seconds.\n";
+    if (!opt.headless)
+      graphics::quit();
+    return 2;
+  }
 
-  std::thread ticker([&clock] { clock.update(); });
+  InterruptTimer clock;
+  clock.setFrameRate(kLiveHz);
+  std::vector<graphics::GraphicsContext> frames;
+  if (record)
+    frames.reserve(static_cast<size_t>(frame_cap));
+  std::vector<std::chrono::steady_clock::time_point> stamps;
+  stamps.reserve(static_cast<size_t>(frame_cap));
+  double paint_ms = 0;
   int logged_second = -1;
-  std::cout << "TimeBox countdown on the LED faces. Close the window or press Ctrl+C.\n";
-  while (!g_stop.load() && !sdl->should_close()) {
+
+  auto present = [&]() -> bool {
     events::queue.process();
     if (!graphics::context_)
-      break;
+      return false;
+    const auto t0 = std::chrono::steady_clock::now();
     sdl->draw(*graphics::context_);
+    const auto t1 = std::chrono::steady_clock::now();
+    paint_ms += std::chrono::duration<double, std::milli>(t1 - t0).count();
+    stamps.push_back(t1);
+    if (record) {
+      if (static_cast<int>(frames.size()) >= frame_cap)
+        return false;
+      graphics::GraphicsContext box(graphics::kBoxWidth, graphics::kBoxHeight);
+      graphics::paint_box_layout(*graphics::context_, box);
+      frames.push_back(std::move(box));
+    }
     const int second = (timer.remaining_ms() + 999) / 1000;
     if (second != logged_second) {
       log_remaining(timer);
       logged_second = second;
     }
-    if (timer.remaining_ms() <= 0)
+    return true;
+  };
+
+  clock.tick(0);
+  if (!present())
+    return 1;
+  std::thread ticker([&clock] { clock.update(); });
+  const auto origin = stamps.front();
+  int periods = 1;
+  while (!g_stop.load() && timer.remaining_ms() > 0 && !sdl->should_close()) {
+    const auto target = origin + std::chrono::milliseconds(
+                                     static_cast<long long>(periods) * kLivePeriodMs);
+    const auto now = std::chrono::steady_clock::now();
+    if (now < target)
+      std::this_thread::sleep_until(target);
+    if (!present())
       break;
-    std::this_thread::sleep_for(std::chrono::milliseconds(16));
+    ++periods;
+    if (std::chrono::steady_clock::now() - origin >
+        std::chrono::seconds(opt.seconds + 2))
+      break;
   }
 
   events::queue.enqueue(std::make_shared<StopEvent>());
   events::queue.process();
   if (ticker.joinable())
     ticker.join();
-  graphics::quit();
-  std::cout << "Timer demo stopped.\n";
-  return 0;
+  events::queue.process();
+
+  double hz = 0;
+  double span = 0;
+  if (stamps.size() >= 2) {
+    span = std::chrono::duration<double>(stamps.back() - stamps.front()).count();
+    hz = static_cast<double>(stamps.size() - 1) / span;
+  }
+  const double paint_avg = stamps.empty() ? 0 : paint_ms / static_cast<double>(stamps.size());
+  std::cout << "live present: " << stamps.size() << " frames in " << span
+            << "s = " << hz << " Hz, paint+present avg " << paint_avg
+            << " ms, cadence " << kLivePeriodMs << " ms\n";
+
+  int status = 0;
+  if (record) {
+    if (frames.size() < 2) {
+      std::cerr << "timer demo recorded fewer than 2 frames\n";
+      status = 1;
+    } else if (!write_frames(opt, frames, kLivePeriodMs / 10)) {
+      status = 1;
+    } else {
+      std::cout << "GIF playback " << (100 / (kLivePeriodMs / 10))
+                << " Hz (delay " << (kLivePeriodMs / 10) << " cs), matching the live cadence.\n";
+    }
+  }
+
+  if (!opt.headless)
+    graphics::quit();
+  if (!opt.headless || !record)
+    std::cout << "Timer demo stopped.\n";
+  return status;
 }
 
 }  // namespace
@@ -390,10 +547,16 @@ int run_timer_demo(int argc, char **argv) {
     opt.gif_path = "meeting_timer.gif";
 
   std::signal(SIGINT, on_sigint);
+  if (opt.benchmark) {
+    const int bench_seconds = opt.seconds > 0 ? std::min(opt.seconds, 5) : 2;
+    return benchmark_present(bench_seconds);
+  }
   std::cout << "TimeBox countdown, " << opt.seconds
             << "s. Audio and hotword are off.\n";
 
-  if (opt.headless)
+  // --step-ms is the old subsampled export. The default path presents live.
+  if (opt.headless && opt.step_set)
     return run_headless(opt);
-  return run_windowed(opt);
+  opt.realtime = true;
+  return run_live(opt);
 }
