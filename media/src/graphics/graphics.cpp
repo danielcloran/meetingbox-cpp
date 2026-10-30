@@ -105,10 +105,10 @@ bool SDL2Renderer::create_renderer(bool capture) {
     return false;
   }
 
-  // Cross of 64x64 panels:
-  //   . T .
-  //   L F R
+  // Cross of 64x64 panels. The lid is the center, not the top of the page.
   //   . B .
+  //   L T R
+  //   . F .
   draw_borders_ = !capture;
   const int scale = capture ? 1 : 3;
   const Uint32 window_flags = capture ? SDL_WINDOW_HIDDEN : SDL_WINDOW_SHOWN;

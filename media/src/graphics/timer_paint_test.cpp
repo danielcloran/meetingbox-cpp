@@ -80,38 +80,72 @@ void check_strip_and_box() {
   const graphics::Pixel blue{0, 0, 255};
   const graphics::Pixel off{0, 0, 0};
   const graphics::Pixel mid{0, 0, 125};
-  // Side faces (panels 0-3) share the row-fade. x=300 is on the lid.
-  expect(at(full, 10, 0) == blue && at(full, 200, 63) == blue,
+  const int lid = graphics::kTimeboxTopPanel * graphics::kPanelSize;
+  int center_x = 0;
+  int center_y = 0;
+  int max_rank = -1;
+  for (int y = 0; y < graphics::kPanelSize; ++y) {
+    for (int x = 0; x < graphics::kPanelSize; ++x) {
+      const int rank = graphics::timebox_spiral_rank(x, y);
+      if (rank > max_rank) {
+        max_rank = rank;
+        center_x = x;
+        center_y = y;
+      }
+    }
+  }
+  expect(graphics::timebox_spiral_rank(0, 0) == 0, "spiral starts at the outer corner");
+  expect(graphics::timebox_spiral_rank(63, 0) == 63, "spiral runs along the outer edge");
+  expect(max_rank == graphics::kPanelSize * graphics::kPanelSize - 1,
+         "spiral visits every lid pixel once");
+  expect(at(full, 10, 0) == blue && at(full, 10, 63) == blue,
          "a full countdown fills the side faces");
   expect(at(half, 10, 0) == off, "half countdown clears the side top row");
   expect(at(half, 10, 63) == mid, "half countdown leaves the side bottom row mid blue");
   expect(at(empty, 10, 63) == off, "a finished side face is black");
-  for (int panel = 0; panel < graphics::kTimeboxTopPanel; ++panel) {
+  const int side_panels[] = {0, 1, 3, 4};
+  for (int panel : side_panels) {
     const int x = panel * graphics::kPanelSize + 8;
-    expect(at(half, x, 63) == mid, "every side face shows the same countdown");
-    expect(at(half, x, 63) != at(half, graphics::kTimeboxTopPanel * graphics::kPanelSize + 8, 63),
-           "the lid is not a copy of the side countdown");
+    expect(at(half, x, 63) == mid, "every wall shows the same countdown");
+    expect(at(half, x, 63) != at(half, lid + center_x, center_y),
+           "the lid center is not a copy of the wall countdown");
   }
-  const int lid = graphics::kTimeboxTopPanel * graphics::kPanelSize;
-  const int bar_y = graphics::kTimeboxLidBarY + graphics::kTimeboxLidBarH / 2;
-  const int bar_left = lid + graphics::kTimeboxLidBarInset;
-  const int bar_far = bar_left + 40;
-  expect(at(full, bar_left, bar_y) == graphics::kTimeboxLidFill, "a full lid bar is filled");
-  expect(at(full, bar_far, bar_y) == graphics::kTimeboxLidFill, "a full lid bar reaches the far end");
-  expect(at(half, bar_left, bar_y) == graphics::kTimeboxLidFill, "half remaining still lights the start of the bar");
-  expect(at(half, bar_far, bar_y) == graphics::kTimeboxLidTrack, "half remaining leaves the far end of the bar dark");
-  expect(at(empty, bar_left, bar_y) == graphics::kTimeboxLidTrack, "a finished lid bar is only the track");
-  const int lamp_x = lid + (graphics::kPanelSize - graphics::kTimeboxLidLamp) / 2 + 2;
-  const int lamp_y = graphics::kTimeboxLidLampY + 2;
-  expect(at(full, lamp_x, lamp_y) == graphics::kTimeboxLidInMeeting, "the lid lamp is in-meeting green");
-  expect(at(half, lamp_x, lamp_y) == graphics::kTimeboxLidInMeeting, "halfway the lid lamp is still in meeting");
-  expect(at(empty, lamp_x, lamp_y) == graphics::kTimeboxLidOver, "a finished meeting turns the lid lamp red");
-  graphics::GraphicsContext ending(LED_WIDTH, LED_HEIGHT);
-  graphics::paint_timebox_timer(ending, 1000, 10000);
-  expect(at(ending, lamp_x, lamp_y) == graphics::kTimeboxLidEnding,
-         "the last quarter turns the lid lamp amber");
-  expect(at(full, bar_left, bar_y) != at(full, 10, bar_y),
-         "the lid bar is not the side-face blue");
+  const graphics::Pixel lid_corner{0, 0, graphics::timebox_lid_blue(0, 0, 1.f)};
+  const graphics::Pixel lid_center_full{
+      0, 0, graphics::timebox_lid_blue(center_x, center_y, 1.f)};
+  const graphics::Pixel lid_center_half{
+      0, 0, graphics::timebox_lid_blue(center_x, center_y, 0.5f)};
+  expect(at(full, lid, 0) == lid_corner, "a full lid keeps a dim outer spiral start");
+  expect(at(full, lid + center_x, center_y) == lid_center_full,
+         "a full lid is brightest at the spiral center");
+  expect(lid_corner.b < lid_center_full.b, "the spiral is brighter toward the middle");
+  expect(at(full, lid, 0) != at(full, 10, 0), "the lid is not the flat side-face blue");
+  expect(at(half, lid, 0) == off, "half remaining has drained the outside of the spiral");
+  expect(at(half, lid + center_x, center_y) == lid_center_half,
+         "half remaining still lights the spiral center");
+  expect(lid_center_half.b > 200, "the center stays bright at half");
+  expect(at(empty, lid + center_x, center_y) == off, "a finished spiral is dark at the center");
+  // Neighbor just outside vs just inside the half-time wavefront.
+  int outside_x = 0;
+  int outside_y = 0;
+  int inside_x = center_x;
+  int inside_y = center_y;
+  const int dark = static_cast<int>(0.5f * graphics::kPanelSize * graphics::kPanelSize);
+  for (int y = 0; y < graphics::kPanelSize; ++y) {
+    for (int x = 0; x < graphics::kPanelSize; ++x) {
+      const int rank = graphics::timebox_spiral_rank(x, y);
+      if (rank == dark - 1) {
+        outside_x = x;
+        outside_y = y;
+      }
+      if (rank == dark) {
+        inside_x = x;
+        inside_y = y;
+      }
+    }
+  }
+  expect(at(half, lid + outside_x, outside_y) == off, "the spiral wavefront has passed the outer rank");
+  expect(at(half, lid + inside_x, inside_y).b > 0, "the next spiral step is still lit");
   expect(count_diff(full, half) > 1000, "full and half frames differ across the strip");
   expect(count_diff(half, empty) > 1000, "half and empty frames differ across the strip");
 
@@ -140,12 +174,15 @@ void check_strip_and_box() {
   int lid_box_y = 0;
   int side_box_x = 0;
   int side_box_y = 0;
-  expect(box_for_strip(bar_far, bar_y, lid_box_x, lid_box_y), "lid bar maps onto the cross");
-  expect(box_for_strip(10, bar_y, side_box_x, side_box_y), "side face maps onto the cross");
-  expect(at(half_box, lid_box_x, lid_box_y) == graphics::kTimeboxLidTrack,
-         "the unfolded lid shows the unfilled end of the status bar");
+  expect(box_for_strip(lid + center_x, center_y, lid_box_x, lid_box_y),
+         "lid center maps onto the cross");
+  expect(lid_box_x >= 64 && lid_box_x < 128 && lid_box_y >= 64 && lid_box_y < 128,
+         "the physical top is the center of the cross");
+  expect(box_for_strip(10, 63, side_box_x, side_box_y), "a wall maps onto the cross");
+  expect(at(half_box, lid_box_x, lid_box_y) == lid_center_half,
+         "the unfolded lid center is still lit at half");
   expect(at(half_box, side_box_x, side_box_y) != at(half_box, lid_box_x, lid_box_y),
-         "on the box, the lid is not the same pixels as a side face");
+         "on the box, the lid spiral is not the wall fade");
   expect(count_diff(full_box, half_box) > 1000, "the unfolded box changes as the timer drops");
 
   setenv("SDL_VIDEODRIVER", "dummy", 1);

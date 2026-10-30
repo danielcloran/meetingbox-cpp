@@ -77,7 +77,8 @@ namespace graphics
     };
 
     // Copy the 320x64 strip onto the 192x192 unfolded box.
-    // Panel 0 left, 1 front, 2 right, 3 back, 4 top.
+    // Strip: 0 left, 1 front, 2 top (lid, middle panel), 3 right, 4 back.
+    // Cross center is the lid. See box_layout.cpp.
     void paint_box_layout(const GraphicsContext& strip, GraphicsContext& box);
 
     // Solid panel colours plus labels, matching graphics_test.

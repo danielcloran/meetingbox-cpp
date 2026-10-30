@@ -4,9 +4,10 @@
 // Expected unfolded-box colours for the graphics test. These coordinates are
 // the contract; they are not read from box_panel_placements().
 //
-//   . T .
-//   L F R
 //   . B .
+//   L T R
+//   . F .
+// The center cell is the lid (strip index 2), not the cell at the top of the page.
 
 #include "graphics/graphics.hpp"
 
@@ -32,13 +33,15 @@ struct Region {
   Pixel color;
 };
 
-// Cross positions. Colours match the graphics test panels.
+// Cross positions. Colours are the graphics-test strip panels after the lid
+// correction: index 2 (blue) is the center, index 4 (magenta) is the back
+// wall at the top of the page.
 inline constexpr Region kCrossPanels[] = {
-    {64, 0, 64, 64, Pixel{255, 0, 255}},    // top
-    {0, 64, 64, 64, Pixel{255, 0, 0}},      // left
-    {64, 64, 64, 64, Pixel{0, 255, 0}},     // front
-    {128, 64, 64, 64, Pixel{0, 0, 255}},    // right
-    {64, 128, 64, 64, Pixel{255, 255, 0}},  // back
+    {64, 0, 64, 64, Pixel{255, 0, 255}},    // back (strip 4)
+    {0, 64, 64, 64, Pixel{255, 0, 0}},      // left (strip 0)
+    {64, 64, 64, 64, Pixel{0, 0, 255}},     // top / lid (strip 2)
+    {128, 64, 64, 64, Pixel{255, 255, 0}},  // right (strip 3)
+    {64, 128, 64, 64, Pixel{0, 255, 0}},    // front (strip 1)
 };
 
 inline Pixel expected_solid_pixel(int x, int y) {
@@ -152,15 +155,15 @@ inline bool check_anchors(const GraphicsContext &box, const Anchor *anchors,
 inline bool check_pattern_anchors(const GraphicsContext &box, std::string &error) {
   const Anchor anchors[] = {
       {48, 112, Pixel{255, 0, 0}, "left panel"},
-      {112, 112, Pixel{0, 255, 0}, "front panel"},
-      {176, 112, Pixel{0, 0, 255}, "right panel"},
-      {112, 176, Pixel{255, 255, 0}, "back panel"},
-      {112, 48, Pixel{255, 0, 255}, "top panel"},
+      {112, 112, Pixel{0, 0, 255}, "top panel"},
+      {176, 112, Pixel{255, 255, 0}, "right panel"},
+      {112, 176, Pixel{0, 255, 0}, "front panel"},
+      {112, 48, Pixel{255, 0, 255}, "back panel"},
       {10, 84, Pixel{255, 255, 255}, "LEFT text"},
-      {74, 84, Pixel{0, 0, 0}, "FRONT text"},
-      {138, 84, Pixel{255, 255, 255}, "RIGHT text"},
-      {74, 148, Pixel{0, 0, 0}, "BACK text"},
-      {74, 20, Pixel{255, 255, 255}, "TOP text"},
+      {74, 84, Pixel{255, 255, 255}, "TOP text"},
+      {138, 84, Pixel{0, 0, 0}, "RIGHT text"},
+      {74, 148, Pixel{0, 0, 0}, "FRONT text"},
+      {74, 20, Pixel{255, 255, 255}, "BACK text"},
       {32, 32, kSpecBackground, "top-left empty"},
       {160, 32, kSpecBackground, "top-right empty"},
       {32, 160, kSpecBackground, "bottom-left empty"},
