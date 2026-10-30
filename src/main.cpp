@@ -8,8 +8,11 @@
 #include "audio/audio.hpp"
 
 #include "processes/process_manager.hpp"
+#include "demo/timer_demo.hpp"
 
 #include "utils/interrupt_timer.hpp"
+
+#include <string>
 
 void interruptHandler(int dummy)
 {
@@ -17,8 +20,19 @@ void interruptHandler(int dummy)
     graphics::quit();
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    bool timer_demo = false;
+    for (int i = 1; i < argc; ++i) {
+        const std::string arg = argv[i];
+        if (arg == "--demo=timer" || arg == "--no-audio")
+            timer_demo = true;
+    }
+    if (timer_demo) {
+        std::cout << "MeetingBox timer demo (--no-audio, no hotword)" << std::endl;
+        return run_timer_demo(argc, argv);
+    }
+
     signal(SIGINT, interruptHandler);
 
     std::cout << "Starting MeetingBox..." << std::endl;

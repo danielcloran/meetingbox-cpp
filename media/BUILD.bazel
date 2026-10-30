@@ -73,6 +73,7 @@ cc_library(
     srcs = [
         "src/graphics/box_layout.cpp",
         "src/graphics/graphics.cpp",
+        "src/graphics/timebox_timer.cpp",
     ],
     hdrs = glob([
         "include/graphics/**/*.hpp",
@@ -134,4 +135,18 @@ cc_test(
     ],
     copts = ["-std=c++17"],
     deps = [":graphics"],
+)
+
+# The countdown moves: a later frame is not a copy of the first, on the strip
+# and on the SDL readback of the unfolded box.
+cc_test(
+    name = "timer_paint_test",
+    size = "small",
+    srcs = ["src/graphics/timer_paint_test.cpp"],
+    copts = ["-std=c++17"],
+    linkopts = ["-pthread"],
+    deps = [
+        ":graphics",
+        "//src:timer",
+    ],
 )

@@ -19,7 +19,11 @@
 
 class ProcessManager {
 public:
-    ProcessManager();
+    // Default startup is the hotword process. Pass ProcessType::TIMER and a
+    // Json info object with "time" (seconds, or an ISO-8601 duration) to start
+    // the meeting countdown instead.
+    ProcessManager(ProcessType initial = ProcessType::HOTWORD_DETECTED,
+                   Json::Value info = Json::Value());
     // std::shared_ptr<Process> getProcessById(int id);
     ~ProcessManager();
 private:

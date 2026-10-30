@@ -42,10 +42,17 @@ void InterruptTimer::update()
             timePassed = millisecondsBetweenUpdates;
         }
 
-        lastUpdateMilliseconds = current_timestamp();
-        events::queue.enqueue(std::make_shared<TimeElapsedEvent>(timePassed));
-        events::queue.enqueue(std::make_shared<DrawEvent>(timePassed));
+        tick(timePassed);
     }
+}
+
+void InterruptTimer::tick(long long timePassed)
+{
+    if (timePassed < 0)
+        timePassed = 0;
+    lastUpdateMilliseconds = current_timestamp();
+    events::queue.enqueue(std::make_shared<TimeElapsedEvent>(timePassed));
+    events::queue.enqueue(std::make_shared<DrawEvent>(timePassed));
 }
 
 void InterruptTimer::setFrameRate(int frameRate)

@@ -111,6 +111,7 @@ namespace graphics
         void draw(const GraphicsContext& context) override;
         void cleanup() override;
         bool should_close() override;
+        bool ready() const { return renderer_ != nullptr; }
 
     private:
         SDL_Window* window_ = nullptr;

@@ -6,9 +6,15 @@
 //
 
 #include "processes/timer.hpp"
+
+#include "graphics/timebox_timer.hpp"
+
+#include <algorithm>
+#include <cctype>
 #include <iostream>
-#include <unistd.h>
 #include <regex>
+#include <string>
+#include <vector>
 
 #include "json/json.h"
 
@@ -60,21 +66,29 @@ TimerProcess::TimerProcess(int processId, int screenId, Json::Value info) : Proc
     {
         seconds = info["time"].asInt();
     }
-    else
+    else if (info["time"].isString())
     {
         std::string timeToParse = info["time"].asString();
-        // std::cout << "Time: " << timeToParse << std::endl;
-
-        std::regex rshort("^((?!T).)*$");
-        if (std::regex_match(timeToParse, rshort)) // no T (Time) exist
+        const bool digits_only = !timeToParse.empty() &&
+            std::all_of(timeToParse.begin(), timeToParse.end(),
+                        [](unsigned char ch) { return std::isdigit(ch) != 0; });
+        if (digits_only)
         {
-            std::regex r("P([[:d:]]+Y)?([[:d:]]+M)?([[:d:]]+D)?");
-            seconds = match_duration(timeToParse, r);
+            seconds = std::stoi(timeToParse);
         }
         else
         {
-            std::regex r("P([[:d:]]+Y)?([[:d:]]+M)?([[:d:]]+D)?T([[:d:]]+H)?([[:d:]]+M)?([[:d:]]+S|[[:d:]]+\\.[[:d:]]+S)?");
-            seconds = match_duration(timeToParse, r);
+            std::regex rshort("^((?!T).)*$");
+            if (std::regex_match(timeToParse, rshort)) // no T (Time) exist
+            {
+                std::regex r("P([0-9]+Y)?([0-9]+M)?([0-9]+D)?");
+                seconds = match_duration(timeToParse, r);
+            }
+            else
+            {
+                std::regex r("P([0-9]+Y)?([0-9]+M)?([0-9]+D)?T([0-9]+H)?([0-9]+M)?([0-9]+(?:\\.[0-9]+)?S)?");
+                seconds = match_duration(timeToParse, r);
+            }
         }
     }
 
@@ -83,24 +97,34 @@ TimerProcess::TimerProcess(int processId, int screenId, Json::Value info) : Proc
     timerInitialDuration = seconds * 1000;
     timeRemaining = timerInitialDuration;
 
-    timerPercentage = 0;
+    timerPercentage = timerInitialDuration > 0 ? 1.f : 0.f;
     clearRow = 0;
 }
 
 void TimerProcess::draw(long long timeElapsed)
 {
-    timeRemaining += -(timeElapsed);
-    timerPercentage = (timeRemaining / float(timerInitialDuration));
+    if (timerInitialDuration > 0 && timeElapsed > 0)
+    {
+        if (timeElapsed >= static_cast<long long>(timeRemaining))
+            timeRemaining = 0;
+        else
+            timeRemaining -= static_cast<int>(timeElapsed);
+    }
+
+    if (timerInitialDuration > 0)
+        timerPercentage = timeRemaining / float(timerInitialDuration);
+    else
+        timerPercentage = 0.f;
 
     if (timerPercentage < 0.0f)
         timerPercentage = 0.0f;
     if (timerPercentage > 1.0f)
         timerPercentage = 1.0f;
 
-    // Simple timer display using graphics::display_message
-    std::string timerText = "Timer: " + std::to_string((int)(timerPercentage * 100)) + "%";
-    graphics::display_message(timerText);
+    // Same field the original SDL draw filled: one blue level per row.
+    if (graphics::context_)
+        graphics::paint_timebox_timer(*graphics::context_, timeRemaining, timerInitialDuration);
 
-    if (timeRemaining < 0)
+    if (timerInitialDuration > 0 && timeRemaining <= 0 && timeElapsed > 0)
         deleteMe();
 }

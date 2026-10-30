@@ -9,26 +9,15 @@
 #include "processes/process_factory.hpp"
 #include <iostream>
 
-ProcessManager::ProcessManager() : listeners(events::queue)
+ProcessManager::ProcessManager(ProcessType initial, Json::Value info) : listeners(events::queue)
 {
     processId = 1;
-
-    // screenManager = new ScreenManager(this);
 
     listeners.appendListener(EventType::create_process, std::bind(&ProcessManager::handleCreateProcessEvent, this, std::placeholders::_1));
     listeners.appendListener(EventType::edit_process, std::bind(&ProcessManager::handleEditProcessEvent, this, std::placeholders::_1));
     listeners.appendListener(EventType::delete_process, std::bind(&ProcessManager::handleDeleteProcessEvent, this, std::placeholders::_1));
 
-
-    // Initially Add A ScreenSaver;
-//    eventQueue->publish(EventType::create_process, new CreateProcessEvent("showTimer", {{"time", "30"}}));
-    // events::queue.enqueue(std::make_shared<CreateProcessEvent>(ProcessType::SCREEN_SAVER, Json::Value()));
-    // create timer with time in info
-    // Json::Value timerInfo;
-    // timerInfo["time"] = 5;
-    // events::queue.enqueue(std::make_shared<CreateProcessEvent>(ProcessType::SCREENSAVER, timerInfo));
-
-    events::queue.enqueue(std::make_shared<CreateProcessEvent>(ProcessType::HOTWORD_DETECTED, Json::Value()));
+    events::queue.enqueue(std::make_shared<CreateProcessEvent>(static_cast<int>(initial), info));
 
 
     // events::queue.enqueue(std::make_shared<TimeElapsedEvent>(timeElapsed));
