@@ -11,20 +11,17 @@ public:
     virtual ~TimerProcess() = default;
     const ProcessType type = ProcessType::TIMER;
 
+    int total_ms() const { return timerInitialDuration; }
+    int remaining_ms() const { return timeRemaining; }
+    float remaining_fraction() const { return timerPercentage; }
+
 private:
     int timerInitialDuration;
     int timeRemaining;
     float timerPercentage;
     int clearRow;
 
-    // void DrawFull(WindowCanvas *windowCanvas);
-    // void DrawTimerBlock(WindowCanvas *windowCanvas);
-
-    void handleTimeElapsedEvent(events::EventPointer theEvent);
-
     void draw(long long timeElapsed) override;
-
-    void listenForEvents();
 };
 
 #endif /* TIMER_PROCESS_hpp */

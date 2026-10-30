@@ -4,3 +4,8 @@ alias(
     name = "meetingbox",
     actual = "//src:meetingbox",
 )
+
+alias(
+    name = "timer_demo",
+    actual = "//src:timer_demo",
+)

@@ -2,16 +2,47 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
+# Timer clock and countdown. Graphics only — no audio, hotword, or PocketSphinx.
+cc_library(
+    name = "timer",
+    srcs = [
+        "processes/timer.cpp",
+        "utils/interrupt_timer.cpp",
+    ],
+    copts = ["-std=c++17"],
+    deps = [
+        "//events",
+        "//include:headers",
+        "//media:graphics",
+        "@jsoncpp//:jsoncpp",
+    ],
+)
+
+cc_library(
+    name = "timer_demo_lib",
+    srcs = [
+        "gif_writer.cpp",
+        "timer_demo.cpp",
+    ],
+    hdrs = ["gif_writer.hpp"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":timer",
+        "//include:headers",
+        "//media:graphics",
+        "@jsoncpp//:jsoncpp",
+    ],
+)
+
 cc_library(
     name = "meetingbox_core",
     srcs = [
         "processes/hotword_detected.cpp",
         "processes/process_manager.cpp",
         "processes/screensaver_simple.cpp",
-        "processes/timer.cpp",
-        "utils/interrupt_timer.cpp",
     ],
     deps = [
+        ":timer",
         "//include:headers",
         "//events",
         "//media",
@@ -21,10 +52,20 @@ cc_library(
 )
 
 cc_binary(
+    name = "timer_demo",
+    srcs = ["timer_demo_main.cpp"],
+    copts = ["-std=c++17"],
+    linkopts = ["-pthread"],
+    deps = [":timer_demo_lib"],
+)
+
+cc_binary(
     name = "meetingbox",
     srcs = ["main.cpp"],
     deps = [
         ":meetingbox_core",
+        ":timer_demo_lib",
     ],
     copts = ["-std=c++17"],
+    linkopts = ["-pthread"],
 )

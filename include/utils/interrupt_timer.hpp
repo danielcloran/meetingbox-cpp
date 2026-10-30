@@ -9,6 +9,9 @@ class InterruptTimer
 public:
     InterruptTimer();
     void update();
+    // Publish one TimeElapsedEvent and one DrawEvent. update() calls this
+    // after each frame; tests and the headless demo call it with a chosen delta.
+    void tick(long long timePassed);
     void setFrameRate(int frameRate);
     ~InterruptTimer();
 

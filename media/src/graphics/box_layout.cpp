@@ -3,14 +3,22 @@
 namespace graphics {
 namespace {
 
-// Strip order is the graphics-test order: left, front, right, back, top.
-// Destinations are the unfolded cross, not the Raspberry Pi chain mapper.
+// Physical lid is the middle panel of the 320-wide strip (index 2), and the
+// center of this cross. The Pi driver (chain 2 x parallel 3) only numbers
+// panels 1..5 onto a 2-column grid; it does not name cube faces. A 2025
+// graphics split guessed index 4 was the top. That cell is the back wall.
+//
+// Strip: [Left][Front][Top][Right][Back]
+// Cross, lid in the middle (the face you look down on):
+//        Back
+//   Left Top  Right
+//        Front
 constexpr BoxPanelPlacement kPlacements[kBoxPanelCount] = {
-    {4, 64, 0},    // top
+    {2, 64, 64},   // top / lid
     {0, 0, 64},    // left
-    {1, 64, 64},   // front
-    {2, 128, 64},  // right
-    {3, 64, 128},  // back
+    {3, 128, 64},  // right
+    {1, 64, 128},  // front
+    {4, 64, 0},    // back
 };
 
 static_assert(LED_PANELS == kBoxPanelCount, "one placement per face");
@@ -56,9 +64,9 @@ void paint_graphics_test_pattern(GraphicsContext &strip) {
   const Panel panels[] = {
       {0, Pixel(255, 0, 0), Pixel(255, 255, 255), "LEFT"},
       {1, Pixel(0, 255, 0), Pixel(0, 0, 0), "FRONT"},
-      {2, Pixel(0, 0, 255), Pixel(255, 255, 255), "RIGHT"},
-      {3, Pixel(255, 255, 0), Pixel(0, 0, 0), "BACK"},
-      {4, Pixel(255, 0, 255), Pixel(255, 255, 255), "TOP"},
+      {2, Pixel(0, 0, 255), Pixel(255, 255, 255), "TOP"},
+      {3, Pixel(255, 255, 0), Pixel(0, 0, 0), "RIGHT"},
+      {4, Pixel(255, 0, 255), Pixel(255, 255, 255), "BACK"},
   };
   for (const Panel &panel : panels) {
     strip.draw_rectangle(panel.index * kPanelSize, 0, kPanelSize, kPanelSize,
