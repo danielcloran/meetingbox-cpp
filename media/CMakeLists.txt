@@ -7,10 +7,17 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
     message(STATUS "Building on a Raspberry Pi")
     target_sources(media PRIVATE src/graphics/rpi/renderer.cpp)
     target_link_libraries(media PRIVATE ${CMAKE_SOURCE_DIR}/libs/porcupine/lib/raspberry-pi/cortex-a72-aarch64/libpv_porcupine.so ${CMAKE_SOURCE_DIR}/libs/rpi-rgb-led-matrix/lib/librgbmatrix.a)
-else()
-    message(STATUS "Not building on a Raspberry Pi")
+elseif(APPLE)
+    message(STATUS "Building on macOS")
     target_sources(media PRIVATE src/graphics/renderer.cpp)
     target_link_libraries(media PRIVATE ${CMAKE_SOURCE_DIR}/libs/porcupine/lib/mac/x86_64/libpv_porcupine.dylib)
+else()
+    message(STATUS "Building on Linux x86_64")
+    target_sources(media PRIVATE src/graphics/renderer.cpp)
+    target_link_libraries(media PRIVATE ${CMAKE_SOURCE_DIR}/libs/porcupine/lib/linux/x86_64/libpv_porcupine.so)
+    set_target_properties(media PROPERTIES
+        BUILD_RPATH "${CMAKE_SOURCE_DIR}/libs/porcupine/lib/linux/x86_64"
+        INSTALL_RPATH "${CMAKE_SOURCE_DIR}/libs/porcupine/lib/linux/x86_64")
 endif()
 
 target_link_libraries(media PRIVATE

@@ -2,6 +2,7 @@
 #define EVENT_QUEUE_HPP
 
 #include <stdio.h>
+#include <algorithm>
 #include <thread>
 
 #include <eventpp/eventqueue.h>
