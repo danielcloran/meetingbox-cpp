@@ -1,63 +1,70 @@
 #include "events/event_queue.hpp"
 #include "events/events.hpp"
 #include "graphics/graphics.hpp"
-#include <chrono>
-#include <iostream>
-#include <thread>
+#include "media/src/graphics/box_layout_spec.hpp"
 
-int main() {
+#include <iostream>
+#include <string>
+
+namespace {
+
+void print_usage() {
+  std::cout
+      << "Usage: graphics_test [--headless] [--ppm=path.ppm]\n"
+      << "  --headless  Paint the unfolded box with the SDL software renderer\n"
+      << "              (SDL_VIDEODRIVER=dummy) and exit. Non-zero on mismatch.\n"
+      << "  --ppm=FILE  With --headless, write the painted box as a PPM image.\n";
+}
+
+}  // namespace
+
+int main(int argc, char **argv) {
+  bool headless = false;
+  std::string ppm_path;
+
+  for (int i = 1; i < argc; ++i) {
+    const std::string arg = argv[i];
+    if (arg == "--headless") {
+      headless = true;
+    } else if (arg == "--help" || arg == "-h") {
+      print_usage();
+      return 0;
+    } else if (arg.rfind("--ppm=", 0) == 0) {
+      ppm_path = arg.substr(6);
+      if (ppm_path.empty()) {
+        std::cerr << "--ppm requires a file path\n";
+        return 2;
+      }
+    } else {
+      std::cerr << "Unknown argument: " << arg << "\n";
+      print_usage();
+      return 2;
+    }
+  }
+
+  if (headless) {
+    std::cout << "Headless graphics test (box layout)..." << std::endl;
+    const int status = graphics::testspec::run_box_paint_checks(ppm_path);
+    if (status == 0) {
+      std::cout << "Graphics Test Completed." << std::endl;
+    }
+    return status;
+  }
+
   std::cout << "Starting Graphics Test (Box Layout)..." << std::endl;
 
-  // Register Draw Listener
-  // Note: EventType and Event are in the global namespace based on events.hpp
   events::queue.appendListener(
-      EventType::draw, [](const events::EventPointer &event) {
+      EventType::draw, [](const events::EventPointer &) {
         if (graphics::context_) {
-          graphics::context_->clear(graphics::Pixel(0, 0, 0));
-
-          // Draw distinct colors for each panel to verify layout
-
-          // Panel 0: Left (Red) -> Should appear at (0, 64)
-          graphics::context_->draw_rectangle(0 * 64, 0, 64, 64,
-                                             graphics::Pixel(255, 0, 0));
-          graphics::context_->draw_text("LEFT", 0 * 64 + 10, 20,
-                                        graphics::Pixel(255, 255, 255));
-
-          // Panel 1: Front (Green) -> Should appear at (64, 64)
-          graphics::context_->draw_rectangle(1 * 64, 0, 64, 64,
-                                             graphics::Pixel(0, 255, 0));
-          graphics::context_->draw_text("FRONT", 1 * 64 + 10, 20,
-                                        graphics::Pixel(0, 0, 0));
-
-          // Panel 2: Right (Blue) -> Should appear at (128, 64)
-          graphics::context_->draw_rectangle(2 * 64, 0, 64, 64,
-                                             graphics::Pixel(0, 0, 255));
-          graphics::context_->draw_text("RIGHT", 2 * 64 + 10, 20,
-                                        graphics::Pixel(255, 255, 255));
-
-          // Panel 3: Back (Yellow) -> Should appear at (64, 128)
-          graphics::context_->draw_rectangle(3 * 64, 0, 64, 64,
-                                             graphics::Pixel(255, 255, 0));
-          graphics::context_->draw_text("BACK", 3 * 64 + 10, 20,
-                                        graphics::Pixel(0, 0, 0));
-
-          // Panel 4: Top (Magenta) -> Should appear at (64, 0)
-          graphics::context_->draw_rectangle(4 * 64, 0, 64, 64,
-                                             graphics::Pixel(255, 0, 255));
-          graphics::context_->draw_text("TOP", 4 * 64 + 10, 20,
-                                        graphics::Pixel(255, 255, 255));
+          graphics::paint_graphics_test_pattern(*graphics::context_);
         }
       });
 
-  // Register Stop Listener
   events::queue.appendListener(
       EventType::stop,
-      [](const events::EventPointer &event) { graphics::quit(); });
+      [](const events::EventPointer &) { graphics::quit(); });
 
-  // Initialize graphics (creates window, renderer)
   graphics::initialize();
-
-  // Start graphics loop (this blocks until quit and handles event processing)
   graphics::loop();
 
   std::cout << "Graphics Test Completed." << std::endl;

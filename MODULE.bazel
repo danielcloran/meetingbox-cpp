@@ -5,14 +5,13 @@
 module(
     name = "meetingbox",
     version = "0.1.0",
-    compatibility_level = 1,
 )
 
 # Core dependencies available from the Bazel Central Registry.
 bazel_dep(name = "rules_cc", version = "0.1.1")
 bazel_dep(name = "fmt", version = "11.0.2")
 bazel_dep(name = "spdlog", version = "1.15.0")
-bazel_dep(name = "platforms", version = "0.0.10")
+bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "rules_python", version = "0.40.0")
 
 # Load repository rule helpers so we can bring in dependencies
@@ -20,12 +19,12 @@ bazel_dep(name = "rules_python", version = "0.40.0")
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
-# SDL2 for cross-platform graphics (using local framework)
-local_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:local.bzl", "local_repository")
+# SDL2 for the desktop/headless paint path.
+# Linux: system libsdl2 (libsdl2-dev). macOS: external/SDL2.framework headers.
+sdl2_repository = use_repo_rule("//third_party:sdl2.bzl", "sdl2_repository")
 
-local_repository(
+sdl2_repository(
     name = "sdl2",
-    path = "external/SDL2.framework",
 )
 
 # rpi_ws281x library for WS2812B LED control

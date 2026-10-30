@@ -3,8 +3,10 @@
 #include "events/events.hpp"
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -60,10 +62,10 @@ void GraphicsContext::draw_text(const std::string &text, int x, int y,
   }
 }
 
-void GraphicsContext::save_to_ppm(const std::string &filename) const {
+bool GraphicsContext::save_to_ppm(const std::string &filename) const {
   std::ofstream file(filename, std::ios::binary);
   if (!file)
-    return;
+    return false;
 
   file << "P6\n" << width_ << " " << height_ << "\n255\n";
   for (const auto &pixel : pixels_) {
@@ -71,6 +73,7 @@ void GraphicsContext::save_to_ppm(const std::string &filename) const {
     file.write(reinterpret_cast<const char *>(&pixel.g), 1);
     file.write(reinterpret_cast<const char *>(&pixel.b), 1);
   }
+  return static_cast<bool>(file);
 }
 
 bool GraphicsContext::is_valid_position(int x, int y) const {
@@ -85,107 +88,172 @@ SDL2Renderer::SDL2Renderer()
 SDL2Renderer::~SDL2Renderer() { cleanup(); }
 
 void SDL2Renderer::init() {
-  std::cout << "Initializing SDL2 renderer..." << std::endl;
+  if (!create_renderer(/*capture=*/false)) {
+    std::cerr << "SDL2 renderer failed to initialize." << std::endl;
+  }
+}
+
+bool SDL2Renderer::init_capture() { return create_renderer(/*capture=*/true); }
+
+bool SDL2Renderer::create_renderer(bool capture) {
+  std::cout << "Initializing SDL2 renderer ("
+            << (capture ? "headless" : "window") << ")..." << std::endl;
 
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError()
               << std::endl;
-    return;
+    return false;
   }
 
-  // Create a window for the Box Layout (Cross shape)
-  // Grid: 3x3 of 64x64 panels
+  // Cross of 64x64 panels:
   //   . T .
   //   L F R
   //   . B .
-  // Width: 3 * 64
-  // Height: 3 * 64
-  int scale = 3; // Scale factor for visibility
-  int window_w = 3 * 64 * scale;
-  int window_h = 3 * 64 * scale;
-
+  draw_borders_ = !capture;
+  const int scale = capture ? 1 : 3;
+  const Uint32 window_flags = capture ? SDL_WINDOW_HIDDEN : SDL_WINDOW_SHOWN;
   window_ = SDL_CreateWindow("MeetingBox LED Matrix (Dev)",
                              SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                             window_w, window_h, SDL_WINDOW_SHOWN);
+                             kBoxWidth * scale, kBoxHeight * scale, window_flags);
   if (!window_) {
     std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError()
               << std::endl;
-    SDL_Quit();
-    return;
+    return false;
   }
 
-  renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED);
+  const Uint32 renderer_flags =
+      capture ? SDL_RENDERER_SOFTWARE : SDL_RENDERER_ACCELERATED;
+  renderer_ = SDL_CreateRenderer(window_, -1, renderer_flags);
+  if (!renderer_ && !capture) {
+    std::cerr << "Accelerated renderer unavailable (" << SDL_GetError()
+              << "), falling back to software." << std::endl;
+    renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_SOFTWARE);
+  }
   if (!renderer_) {
     std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError()
               << std::endl;
-    SDL_DestroyWindow(window_);
-    SDL_Quit();
-    return;
+    return false;
   }
 
-  // Set logical size to match the 3x3 grid (192x192)
-  SDL_RenderSetLogicalSize(renderer_, 192, 192);
-  SDL_SetRenderDrawColor(renderer_, 0x10, 0x10, 0x10,
-                         0xFF); // Dark gray background
+  SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_NONE);
+  if (!capture) {
+    // Window is scaled up; drawing stays in 192x192 LED coordinates.
+    SDL_RenderSetLogicalSize(renderer_, kBoxWidth, kBoxHeight);
+    SDL_RenderSetIntegerScale(renderer_, SDL_TRUE);
+  }
 
   std::cout << "SDL2 renderer initialized successfully." << std::endl;
+  return true;
+}
+
+bool SDL2Renderer::paint_to_renderer(const GraphicsContext &context) {
+  if (!renderer_)
+    return false;
+
+  GraphicsContext box(kBoxWidth, kBoxHeight);
+  paint_box_layout(context, box);
+
+  SDL_SetRenderDrawColor(renderer_, kBoxBackground.r, kBoxBackground.g,
+                         kBoxBackground.b, 0xFF);
+  SDL_RenderClear(renderer_);
+
+  const auto &pixels = box.get_pixels();
+  for (int y = 0; y < kBoxHeight; ++y) {
+    for (int x = 0; x < kBoxWidth; ++x) {
+      const Pixel &pixel = pixels[y * kBoxWidth + x];
+      SDL_SetRenderDrawColor(renderer_, pixel.r, pixel.g, pixel.b, 0xFF);
+      SDL_RenderDrawPoint(renderer_, x, y);
+    }
+  }
+
+  if (draw_borders_) {
+    SDL_SetRenderDrawColor(renderer_, 0x40, 0x40, 0x40, 0xFF);
+    const BoxPanelPlacement *panels = box_panel_placements();
+    for (int i = 0; i < kBoxPanelCount; ++i) {
+      SDL_Rect border = {panels[i].dest_x, panels[i].dest_y, kPanelSize,
+                         kPanelSize};
+      SDL_RenderDrawRect(renderer_, &border);
+    }
+  }
+  return true;
 }
 
 void SDL2Renderer::draw(const GraphicsContext &context) {
-  if (!renderer_)
+  if (!paint_to_renderer(context))
     return;
-
-  SDL_SetRenderDrawColor(renderer_, 0x10, 0x10, 0x10, 0xFF);
-  SDL_RenderClear(renderer_);
-
-  // We need to map the linear 320x64 context to the 5 separate panels in the
-  // cross layout Context Layout: [Top][Left][Front][Right][Back] (Assuming 64
-  // pixels per panel) HOWEVER, the legacy mapping seemed to imply: Panel 0
-  // (0-63): Left Panel 1 (64-127): Front Panel 2 (128-191): Right Panel 3
-  // (192-255): Back Panel 4 (256-319): Top Let's stick to this deduction for
-  // now.
-
-  const auto &pixels = context.get_pixels();
-  int panel_width = 64;
-  int panel_height = 64;
-
-  auto draw_panel = [&](int panel_idx, int dest_x, int dest_y) {
-    int start_x = panel_idx * panel_width;
-
-    for (int y = 0; y < panel_height; ++y) {
-      for (int x = 0; x < panel_width; ++x) {
-        int src_idx = y * context.get_width() + (start_x + x);
-        if (src_idx < pixels.size()) {
-          const auto &p = pixels[src_idx];
-          SDL_SetRenderDrawColor(renderer_, p.r, p.g, p.b, 0xFF);
-          SDL_RenderDrawPoint(renderer_, dest_x + x, dest_y + y);
-        }
-      }
-    }
-    // Draw border
-    SDL_SetRenderDrawColor(renderer_, 0x40, 0x40, 0x40, 0xFF);
-    SDL_Rect border = {dest_x, dest_y, panel_width, panel_height};
-    SDL_RenderDrawRect(renderer_, &border);
-  };
-
-  // Draw panels in cross layout
-  // Row 0: Top (Panel 4) at (64, 0)
-  draw_panel(4, 64, 0);
-
-  // Row 1: Left (Panel 0) at (0, 64)
-  draw_panel(0, 0, 64);
-
-  // Row 1: Front (Panel 1) at (64, 64)
-  draw_panel(1, 64, 64);
-
-  // Row 1: Right (Panel 2) at (128, 64)
-  draw_panel(2, 128, 64);
-
-  // Row 2: Back (Panel 3) at (64, 128)
-  draw_panel(3, 64, 128);
-
   SDL_RenderPresent(renderer_);
   frame_count_++;
+}
+
+bool SDL2Renderer::read_box(GraphicsContext &box, std::string &error) {
+  if (!renderer_) {
+    error = "SDL renderer is not initialized";
+    return false;
+  }
+  if (box.get_width() != kBoxWidth || box.get_height() != kBoxHeight) {
+    error = "capture buffer must be 192x192";
+    return false;
+  }
+
+  int output_w = 0;
+  int output_h = 0;
+  if (SDL_GetRendererOutputSize(renderer_, &output_w, &output_h) != 0) {
+    error = std::string("SDL_GetRendererOutputSize failed: ") + SDL_GetError();
+    return false;
+  }
+  if (output_w != kBoxWidth || output_h != kBoxHeight) {
+    error = "SDL renderer output is " + std::to_string(output_w) + "x" +
+            std::to_string(output_h) + ", expected 192x192";
+    return false;
+  }
+
+  SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(
+      0, kBoxWidth, kBoxHeight, 24, SDL_PIXELFORMAT_RGB24);
+  if (!surface) {
+    error = std::string("SDL_CreateRGBSurfaceWithFormat failed: ") +
+            SDL_GetError();
+    return false;
+  }
+
+  if (SDL_RenderReadPixels(renderer_, nullptr, SDL_PIXELFORMAT_RGB24,
+                           surface->pixels, surface->pitch) != 0) {
+    error = std::string("SDL_RenderReadPixels failed: ") + SDL_GetError();
+    SDL_FreeSurface(surface);
+    return false;
+  }
+
+  const auto *bytes = static_cast<const uint8_t *>(surface->pixels);
+  for (int y = 0; y < kBoxHeight; ++y) {
+    const uint8_t *row = bytes + static_cast<size_t>(y) * surface->pitch;
+    for (int x = 0; x < kBoxWidth; ++x) {
+      const uint8_t *pixel = row + x * 3;
+      box.set_pixel(x, y, Pixel(pixel[0], pixel[1], pixel[2]));
+    }
+  }
+  SDL_FreeSurface(surface);
+  return true;
+}
+
+bool SDL2Renderer::capture(const GraphicsContext &context, GraphicsContext &box,
+                           std::string &error) {
+  if (!paint_to_renderer(context)) {
+    error = "SDL renderer is not initialized";
+    return false;
+  }
+  return read_box(box, error);
+}
+
+bool capture_painted_box(const GraphicsContext &strip, GraphicsContext &box,
+                         std::string &error) {
+  if (!std::getenv("SDL_VIDEODRIVER")) {
+    setenv("SDL_VIDEODRIVER", "dummy", 0);
+  }
+  SDL2Renderer renderer;
+  if (!renderer.init_capture()) {
+    error = std::string("SDL2 headless init failed: ") + SDL_GetError();
+    return false;
+  }
+  return renderer.capture(strip, box, error);
 }
 
 void SDL2Renderer::cleanup() {
@@ -206,6 +274,9 @@ void SDL2Renderer::cleanup() {
 }
 
 bool SDL2Renderer::should_close() {
+  if (!window_)
+    return quit_;
+
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
     if (e.type == SDL_QUIT) {

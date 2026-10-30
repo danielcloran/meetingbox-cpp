@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -71,6 +71,7 @@ cc_binary(
 cc_library(
     name = "graphics",
     srcs = [
+        "src/graphics/box_layout.cpp",
         "src/graphics/graphics.cpp",
     ],
     hdrs = glob([
@@ -114,10 +115,29 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
-# Standalone graphics test binary
+# Standalone graphics test binary.
+# Windowed: opens an SDL window (use xvfb-run if there is no display).
+# Headless: `bazel run //media:graphics_test -- --headless --ppm=/tmp/box.ppm`
 cc_binary(
     name = "graphics_test",
-    srcs = ["src/graphics/graphics_test_main.cpp"],
+    srcs = [
+        "src/graphics/box_layout_spec.hpp",
+        "src/graphics/graphics_test_main.cpp",
+    ],
+    copts = ["-std=c++17"],
     deps = [":graphics"],
     visibility = ["//visibility:public"],
+)
+
+# Proves the five LED faces land on the unfolded cross, including an SDL
+# software-renderer readback (SDL_VIDEODRIVER=dummy, no window and no xvfb).
+cc_test(
+    name = "box_layout_test",
+    size = "small",
+    srcs = [
+        "src/graphics/box_layout_spec.hpp",
+        "src/graphics/box_layout_test.cpp",
+    ],
+    copts = ["-std=c++17"],
+    deps = [":graphics"],
 )
