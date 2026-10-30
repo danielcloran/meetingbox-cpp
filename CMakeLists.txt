@@ -9,14 +9,21 @@ add_executable(main src/main.cpp src/utils/interrupt_timer.cpp src/processes/hot
 
 # Add vcpkg toolchain file to enable vcpkg packages
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/libs/vcpkg/scripts/buildsystems/vcpkg.cmake)
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${CMAKE_SOURCE_DIR}/libs/arm64-linux/share" "${CMAKE_SOURCE_DIR}/libs/x64-osx/share")
-set(VCPKG_INCLUDE "${CMAKE_SOURCE_DIR}/libs/arm64-linux/include/" "${CMAKE_SOURCE_DIR}/libs/x64-osx/include")
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}
+    "${CMAKE_SOURCE_DIR}/libs/x64-linux"
+    "${CMAKE_SOURCE_DIR}/libs/x64-linux/share"
+    "${CMAKE_SOURCE_DIR}/libs/arm64-linux/share"
+    "${CMAKE_SOURCE_DIR}/libs/x64-osx/share")
+set(VCPKG_INCLUDE
+    "${CMAKE_SOURCE_DIR}/libs/x64-linux/include"
+    "${CMAKE_SOURCE_DIR}/libs/arm64-linux/include/"
+    "${CMAKE_SOURCE_DIR}/libs/x64-osx/include")
 
 
 # Find the required packages installed by vcpkg
 find_package(aws-cpp-sdk-core CONFIG REQUIRED)
 find_package(aws-cpp-sdk-lex CONFIG REQUIRED)
-find_package(sdl2 CONFIG REQUIRED)
+find_package(SDL2 CONFIG REQUIRED)
 find_package(SDL2_image CONFIG REQUIRED)
 
 # Shared Libs

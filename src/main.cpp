@@ -1,6 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <csignal>
 
 #include "graphics/graphics.hpp"
 #include "events/event_queue.hpp"
