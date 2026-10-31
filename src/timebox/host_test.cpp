@@ -347,6 +347,154 @@ void test_present_does_not_block() {
   host.shutdown();
 }
 
+void expect_none_done(const std::vector<TimeboxProcess> &list, const std::string &when) {
+  for (const auto &process : list)
+    expect(!process.done, when + ": finished processes are not listed");
+}
+
+void test_finished_timers_free_slots() {
+  TimeboxHost host;
+  TimeboxProcess meeting;
+  TimeboxProcess splash;
+  expect(host.start_process("timer", "meeting", 1, true, &meeting).empty(), "start meeting");
+  expect(host.start_process("paint", "splash", -1, false, &splash).empty(), "start splash");
+  std::vector<uint8_t> marker(static_cast<size_t>(TimeboxHost::kFrameBytes), 0);
+  marker[1] = 180;
+  expect(host.paint_frame(splash.id, marker.data(), marker.size(), nullptr).empty(), "paint splash");
+
+  host.advance_timers(999);
+  TimeboxProcess meeting_left = find_name(host.list_processes(), "meeting");
+  expect(meeting_left.id == meeting.id && meeting_left.remaining_ms == 1 && !meeting_left.done,
+         "one millisecond left keeps the timer");
+  expect(host.status().process_count == 2, "both processes still occupy slots");
+  expect(host.status().focused_id == meeting.id, "focus stays until the timer hits zero");
+  expect_none_done(host.list_processes(), "before zero");
+
+  host.advance_timers(1);
+  expect(find_name(host.list_processes(), "meeting").id == 0, "the zero tick removes the timer");
+  expect(host.stop_process(0, "meeting", nullptr).find("no such") != std::string::npos,
+         "a reaped timer is already gone");
+  expect(host.status().process_count == 1, "process_count drops without timebox_stop");
+  expect(host.status().focused_id == 0 && host.status().focused_name.empty(),
+         "finishing the focused timer clears focus");
+  expect(find_name(host.list_processes(), "splash").id == splash.id, "paint is not reaped");
+  std::vector<uint8_t> splash_frame;
+  expect(host.snapshot(splash.id, "", &splash_frame, nullptr).empty(), "splash snapshot");
+  expect(splash_frame == marker, "reaping a timer does not clear a paint slot");
+  expect(host.start_process("timer", "meeting", 5, false, nullptr).empty(),
+         "a finished name can be used again");
+  expect(host.stop_process(0, "meeting", nullptr).empty(), "stop still removes a live timer");
+  expect(host.show_process(0, "splash", nullptr).empty(), "show works after focus was cleared");
+  expect(host.status().focused_id == splash.id, "show restores focus");
+
+  expect(host.start_process("timer", "over", 1, false, nullptr).empty(), "start overshoot timer");
+  host.advance_timers(5000);
+  expect(find_name(host.list_processes(), "over").id == 0, "a tick past zero reaps the timer once");
+  expect(find_name(host.list_processes(), "splash").id == splash.id, "overshoot does not remove paint");
+  expect(host.status().focused_id == splash.id,
+         "an unfocused timer finishing does not clear someone else's focus");
+  expect(host.stop_process(splash.id, "", nullptr).empty(), "clear the paint before filling");
+
+  for (int i = 0; i < TimeboxHost::kCapacity; ++i) {
+    const std::string name = "t" + std::to_string(i);
+    expect(host.start_process("timer", name, 1, i == 0, nullptr).empty(), "fill " + name);
+  }
+  expect(host.list_processes().size() == static_cast<size_t>(TimeboxHost::kCapacity),
+         "eight live timers fill the table");
+  expect(host.status().process_count == TimeboxHost::kCapacity, "status counts eight live timers");
+  const std::string blocked = host.start_process("paint", "blocked", -1, false, nullptr);
+  expect(blocked.find("process table full (8)") != std::string::npos,
+         "a ninth live process is rejected: " + blocked);
+
+  host.advance_timers(1000);
+  expect(host.list_processes().empty(), "finished timers leave the table");
+  expect(host.status().process_count == 0, "a full table of done timers frees every slot");
+  expect(host.status().focused_id == 0, "focus is clear after the focused timer finishes");
+  expect_none_done(host.list_processes(), "after the short timers");
+
+  TimeboxProcess next;
+  expect(host.start_process("paint", "next", -1, true, &next).empty(),
+         "a new start succeeds without manual stop");
+  expect(host.list_processes().size() == 1, "only the new process is running");
+  expect(host.status().focused_name == "next", "the new process can take focus");
+
+  // The long timer is unfocused. The short ones finishing must not stop it.
+  TimeboxProcess keeps;
+  expect(host.start_process("timer", "keeps", 10, false, &keeps).empty(), "start unfocused timer");
+  for (int i = 0; i < TimeboxHost::kCapacity - 2; ++i) {
+    expect(host.start_process("timer", "s" + std::to_string(i), 1, false, nullptr).empty(),
+           "fill a short timer beside the long one");
+  }
+  expect(host.list_processes().size() == static_cast<size_t>(TimeboxHost::kCapacity),
+         "paint, long timer, and short timers fill the table");
+  expect(host.start_process("paint", "overflow", -1, false, nullptr).find("full") != std::string::npos,
+         "the mixed table is still full while the short timers are live");
+  host.advance_timers(1000);
+  expect(host.status().process_count == 2, "only the paint and the unfinished timer remain");
+  TimeboxProcess keeps_after = find_name(host.list_processes(), "keeps");
+  expect(keeps_after.id == keeps.id && keeps_after.remaining_ms == 9000 && !keeps_after.focused,
+         "the unfocused timer keeps running");
+  expect(host.status().focused_id == next.id, "paint keeps focus when other timers finish");
+  std::vector<uint8_t> keeps_frame;
+  expect(host.snapshot(keeps.id, "", &keeps_frame, nullptr).empty(), "snapshot the live timer");
+  expect(keeps_frame == timer_frame(9000, 10000), "a surviving timer is still repainted");
+  expect(host.start_process("timer", "after", 30, false, nullptr).empty(),
+         "a freed slot accepts a start while another timer is still running");
+
+  host.advance_timers(9000);
+  expect(find_name(host.list_processes(), "keeps").id == 0, "the unfocused timer is reaped at zero");
+  expect(find_name(host.list_processes(), "next").id == next.id, "paint stays until stop");
+  expect(find_name(host.list_processes(), "after").remaining_ms == 21000,
+         "a later timer is not reaped early");
+  expect(host.stop_process(0, "next", nullptr).empty(), "stop still removes a live paint process");
+  expect(host.stop_process(0, "after", nullptr).empty(), "stop still removes a live timer");
+  expect(host.list_processes().empty(), "stop frees the remaining slots");
+
+  for (int i = 0; i < TimeboxHost::kCapacity; ++i) {
+    expect(host.start_process("timer", "live" + std::to_string(i), 30, false, nullptr).empty(),
+           "refill with live timers");
+  }
+  expect(host.start_process("paint", "ninth", -1, true, nullptr).find("full") != std::string::npos,
+         "eight live processes still fill the table");
+  host.advance_timers(1000);
+  expect(host.status().process_count == TimeboxHost::kCapacity,
+         "a tick that does not finish them does not free slots");
+  expect(find_name(host.list_processes(), "live0").remaining_ms == 29000,
+         "live timers only move by the elapsed time");
+
+  TimeboxHost mcp_host;
+  for (int i = 0; i < TimeboxHost::kCapacity; ++i) {
+    Json::Value args;
+    args["kind"] = "timer";
+    args["name"] = "m" + std::to_string(i);
+    args["seconds"] = 1;
+    args["focus"] = i == 0;
+    ToolResult started = call_tool(mcp_host, "timebox_start", args);
+    expect(!started.is_error, "mcp start " + std::to_string(i) + ": " + started.error);
+  }
+  Json::Value ninth;
+  ninth["kind"] = "paint";
+  ninth["name"] = "ninth";
+  ninth["focus"] = false;
+  ToolResult full = call_tool(mcp_host, "timebox_start", ninth);
+  expect(full.is_error && full.error.find("process table full (8)") != std::string::npos,
+         "timebox_start still reports a full live table: " + full.error);
+  mcp_host.advance_timers(1000);
+  ToolResult status = call_tool(mcp_host, "timebox_status", Json::Value(Json::objectValue));
+  expect(!status.is_error && status.payload["process_count"].asInt() == 0,
+         "timebox_status process_count drops after the timers finish");
+  expect(status.payload["focused_id"].asInt() == 0, "mcp focus clears with the finished timer");
+  ToolResult listed = call_tool(mcp_host, "timebox_list_processes", Json::Value(Json::objectValue));
+  expect(!listed.is_error && listed.payload["processes"].size() == 0,
+         "timebox_list_processes is empty after reap");
+  ToolResult restarted = call_tool(mcp_host, "timebox_start", ninth);
+  expect(!restarted.is_error,
+         "timebox_start succeeds after reap without timebox_stop: " + restarted.error);
+  expect(restarted.payload["name"].asString() == "ninth", "the previously blocked process starts");
+  expect(host.status().process_count == TimeboxHost::kCapacity,
+         "reaping one host does not touch another");
+}
+
 }  // namespace
 
 int main() {
@@ -354,10 +502,11 @@ int main() {
   test_mcp_tools();
   test_interrupt_timer_advances();
   test_present_does_not_block();
+  test_finished_timers_free_slots();
   if (g_failures != 0) {
     std::cerr << g_failures << " timebox host checks failed\n";
     return 1;
   }
-  std::cout << "PASS timebox host: two processes, focus, paint, nonblocking present\n";
+  std::cout << "PASS timebox host: two processes, focus, paint, nonblocking present, reap\n";
   return 0;
 }
