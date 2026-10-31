@@ -1,0 +1,66 @@
+# Default-host (SDL) gate for the Bazel build that already works on master.
+# Raspberry Pi, HUB75, --config=pi, and aarch64 cross-builds are not part of
+# this workflow. They wait on the open select PR.
+name: SDL host
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: sdl-host-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  # setup-bazel saves the repository and disk caches on non-PR runs.
+  actions: write
+
+jobs:
+  test-and-build:
+    name: Test and build the SDL host
+    # Pin 24.04. ubuntu-latest moves to 26.04 in November 2026, and this job
+    # was verified on 24.04. The image already has gcc, git, and a JDK.
+    # Do not apt-install libsdl2-dev: SDL2 is a Bazel http_archive built as a
+    # static library with SDL_DUMMYVIDEO=ON (see third_party/sdl2.BUILD).
+    # rules_foreign_cc fetches its own CMake, GNU Make, and pkg-config.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Bazelisk
+        uses: bazel-contrib/setup-bazel@0.19.1
+        with:
+          # Runner images also ship Bazel 9. Bazelisk reads .bazelversion (8.8.2).
+          bazelisk-version: "1.28.1"
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+          cache-save: ${{ github.event_name != 'pull_request' }}
+          bazelrc: |
+            common --color=yes
+            test --test_output=errors
+            test --test_summary=detailed
+
+      - name: Require the repo's Bazel version
+        run: |
+          set -euo pipefail
+          expected="$(tr -d '[:space:]' < .bazelversion)"
+          version="$(bazel --color=no version)"
+          printf '%s\n' "${version}"
+          actual="$(printf '%s\n' "${version}" | awk '/^Build label:/ { print $3 }')"
+          test -n "${actual}"
+          test "${actual}" = "${expected}"
+
+      - name: Test the default host
+        run: bazel test //src:timebox_host_test //media:box_layout_test //media:timer_paint_test
+
+      - name: Build the MCP server
+        run: bazel build //src:timebox_mcp
