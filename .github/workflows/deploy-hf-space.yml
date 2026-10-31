@@ -1,0 +1,46 @@
+name: Deploy TimeBox demo Space
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "spaces/timebox-timer-demo/**"
+      - ".github/workflows/deploy-hf-space.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-timebox-timer-demo
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check static timer paint
+        run: node spaces/timebox-timer-demo/timer.js
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Syntax-check the Pro-only Gradio app
+        run: python -m py_compile spaces/timebox-timer-demo-gradio/app.py
+      - name: Install huggingface_hub
+        run: pip install -U "huggingface_hub[cli]>=0.26"
+      - name: Upload the existing Static Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+        run: |
+          set -euo pipefail
+          test -n "${HF_TOKEN:-}" || { echo "Missing repo secret HF_TOKEN (write access)"; exit 1; }
+          SPACE_ID="${HF_SPACE_ID:-danielcloran/timebox-timer-demo}"
+          SRC=spaces/timebox-timer-demo
+          # Static SDK only. Gradio/Docker on free cpu-basic returns HTTP 402.
+          # --exist-ok must not recreate danielcloran/timebox-timer-demo.
+          hf repos create "$SPACE_ID" --type space --space-sdk static --public --exist-ok
+          hf upload "$SPACE_ID" "$SRC" . --repo-type space
+          SLUG="${SPACE_ID/\//-}"
+          echo "Space https://huggingface.co/spaces/${SPACE_ID}"
+          echo "App https://${SLUG}.static.hf.space/"

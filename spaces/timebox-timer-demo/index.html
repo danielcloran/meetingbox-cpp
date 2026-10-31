@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>TimeBox timer demo</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; font: 14px/1.45 system-ui, sans-serif; background: #0b0b0c; color: #e8e8ea; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.25rem; margin: 0 0 8px; }
+  p { opacity: 0.75; margin: 0 0 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 16px; }
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; opacity: 0.85; }
+  input[type=text], input[type=number] {
+    background: #161618; border: 1px solid #2a2a2e; color: #fff;
+    border-radius: 8px; padding: 8px 10px; min-width: 120px;
+  }
+  button {
+    background: #3b82f6; color: #fff; border: 0; border-radius: 8px;
+    padding: 10px 16px; font-weight: 600; cursor: pointer;
+  }
+  button.secondary { background: #27272a; }
+  canvas {
+    image-rendering: pixelated; background: #111; border: 1px solid #222;
+    border-radius: 8px; max-width: 100%; height: auto; display: block;
+  }
+  figure { margin: 16px 0; }
+  figcaption { font-size: 12px; opacity: 0.7; margin-bottom: 6px; }
+  #status, #list { font-family: ui-monospace, monospace; font-size: 12px; white-space: pre-wrap; opacity: 0.85; }
+  a { color: #93c5fd; }
+</style>
+</head>
+<body>
+<main>
+  <h1>TimeBox timer demo</h1>
+  <p>Free static preview of the TimeBox timer faces from
+    <a href="https://github.com/danielcloran/meetingbox-cpp">meetingbox-cpp</a>.
+    Not the physical LEDs. Walls use the row-fade. The lid is Top (strip panel 2)
+    and drains along a clockwise spiral. Gradio and MCP need a paid Hugging Face
+    plan; this page does not expose them.</p>
+  <div class="row">
+    <label>Process name<input id="name" type="text" value="demo-30s"/></label>
+    <label>Seconds<input id="seconds" type="number" value="30" min="5" max="3600" step="5"/></label>
+    <button id="start" type="button">Start</button>
+    <button id="show" class="secondary" type="button">Show</button>
+    <button id="stop" class="secondary" type="button">Stop</button>
+  </div>
+  <div id="status">idle</div>
+  <div id="list">no processes</div>
+  <figure>
+    <figcaption>Strip 320×64 @4× — Left | Front | Top | Right | Back</figcaption>
+    <canvas id="strip" width="1280" height="256"></canvas>
+  </figure>
+  <figure>
+    <figcaption>Unfolded box @2× — Back on top, Front on the bottom, lid in the center</figcaption>
+    <canvas id="cross" width="384" height="384"></canvas>
+  </figure>
+</main>
+<script src="timer.js"></script>
+<script>
+const processes = new Map();
+let focused = null;
+
+function blit(canvas, width, height, bytes) {
+  const img = new ImageData(bytes, width, height);
+  const off = document.createElement("canvas");
+  off.width = width;
+  off.height = height;
+  off.getContext("2d").putImageData(img, 0, 0);
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(off, 0, 0, canvas.width, canvas.height);
+}
+
+function remFrac(proc) {
+  if (!proc.start) return 1;
+  return Math.max(0, Math.min(1, (proc.total - (Date.now() - proc.start) / 1000) / proc.total));
+}
+
+function render() {
+  let rem = 0;
+  if (focused && processes.has(focused)) rem = remFrac(processes.get(focused));
+  blit(document.getElementById("strip"), 5 * P, P, paintStripBytes(rem));
+  blit(document.getElementById("cross"), 3 * P, 3 * P, paintCrossBytes(rem));
+  const status = document.getElementById("status");
+  const list = document.getElementById("list");
+  if (!focused || !processes.has(focused)) status.textContent = "idle (nothing focused)";
+  else {
+    const proc = processes.get(focused);
+    const remS = remFrac(proc) * proc.total;
+    status.textContent = `focused=${focused} remaining=${remS.toFixed(1)}s total=${proc.total}s`;
+  }
+  if (!processes.size) list.textContent = "no processes";
+  else {
+    list.textContent = [...processes.entries()].map(([name, proc]) => {
+      const remS = remFrac(proc) * proc.total;
+      return `${name === focused ? "*" : " "} ${name}: timer ${remS.toFixed(1)}s / ${proc.total}s`;
+    }).join("\n");
+  }
+}
+
+document.getElementById("start").onclick = () => {
+  const name = (document.getElementById("name").value || "timer").trim() || "timer";
+  const seconds = Math.max(5, Math.min(3600, +document.getElementById("seconds").value || 30));
+  processes.set(name, { total: seconds, start: Date.now() });
+  if (!focused) focused = name;
+  render();
+};
+document.getElementById("show").onclick = () => {
+  const name = (document.getElementById("name").value || "").trim();
+  if (processes.has(name)) focused = name;
+  render();
+};
+document.getElementById("stop").onclick = () => {
+  const name = (document.getElementById("name").value || "").trim();
+  processes.delete(name);
+  if (focused === name) focused = processes.keys().next().value || null;
+  render();
+};
+firmwarePaintChecks();
+setInterval(render, 100);
+render();
+</script>
+</body>
+</html>
