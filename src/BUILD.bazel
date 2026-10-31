@@ -69,3 +69,41 @@ cc_binary(
     copts = ["-std=c++17"],
     linkopts = ["-pthread"],
 )
+
+# Focused LED host plus a newline-delimited MCP stdio server.
+cc_library(
+    name = "timebox_host",
+    srcs = [
+        "timebox/host.cpp",
+        "timebox/mcp.cpp",
+    ],
+    copts = ["-std=c++17"],
+    linkopts = ["-pthread"],
+    deps = [
+        ":timer",
+        "//include:headers",
+        "//media:graphics",
+        "@jsoncpp//:jsoncpp",
+    ],
+)
+
+cc_binary(
+    name = "timebox_mcp",
+    srcs = ["timebox/mcp_main.cpp"],
+    copts = ["-std=c++17"],
+    linkopts = ["-pthread"],
+    deps = [":timebox_host"],
+)
+
+cc_test(
+    name = "timebox_host_test",
+    size = "small",
+    srcs = ["timebox/host_test.cpp"],
+    copts = ["-std=c++17"],
+    linkopts = ["-pthread"],
+    deps = [
+        ":timebox_host",
+        "//media:graphics",
+        "@jsoncpp//:jsoncpp",
+    ],
+)

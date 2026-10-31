@@ -96,7 +96,8 @@ void SDL2Renderer::init() {
 bool SDL2Renderer::init_capture() { return create_renderer(/*capture=*/true); }
 
 bool SDL2Renderer::create_renderer(bool capture) {
-  std::cout << "Initializing SDL2 renderer ("
+  // stderr: a stdio MCP server owns stdout.
+  std::cerr << "Initializing SDL2 renderer ("
             << (capture ? "headless" : "window") << ")..." << std::endl;
 
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -142,7 +143,7 @@ bool SDL2Renderer::create_renderer(bool capture) {
     SDL_RenderSetIntegerScale(renderer_, SDL_TRUE);
   }
 
-  std::cout << "SDL2 renderer initialized successfully." << std::endl;
+  std::cerr << "SDL2 renderer initialized successfully." << std::endl;
   return true;
 }
 
@@ -257,7 +258,7 @@ bool capture_painted_box(const GraphicsContext &strip, GraphicsContext &box,
 }
 
 void SDL2Renderer::cleanup() {
-  std::cout << "Cleaning up SDL2 renderer..." << std::endl;
+  std::cerr << "Cleaning up SDL2 renderer..." << std::endl;
   if (texture_) {
     SDL_DestroyTexture(texture_);
     texture_ = nullptr;
