@@ -2,6 +2,7 @@
 
 #include "src/gif_writer.hpp"
 #include "graphics/graphics.hpp"
+#include "graphics/sdl_renderer.hpp"
 #include "graphics/timebox_timer.hpp"
 #include "processes/timer.hpp"
 #include "utils/interrupt_timer.hpp"

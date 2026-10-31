@@ -6,7 +6,6 @@
 #include <memory>
 #include <cstdint>
 #include <atomic>
-#include <SDL2/SDL.h>
 
 // LED Matrix dimensions. Five 64x64 panels in one horizontal strip.
 const int LED_WIDTH = 320;
@@ -84,67 +83,33 @@ namespace graphics
     // Solid panel colours plus labels, matching graphics_test.
     void paint_graphics_test_pattern(GraphicsContext& strip);
 
-    // Draw the strip with the SDL software renderer and read the box back.
+    // SDL software-renderer readback of the unfolded box.
     // Uses SDL_VIDEODRIVER=dummy when that variable is unset.
+    // Defined by //media:SdlRenderer (demo readback, not the Pi present path).
     bool capture_painted_box(const GraphicsContext& strip, GraphicsContext& box, std::string& error);
-    
-    // Platform-specific renderer
+
+    // Present backend. Bazel picks the concrete type:
+    //   //media:RpiRenderer — Raspberry Pi aarch64 + HUB75 rpi-rgb-led-matrix
+    //   //media:SdlRenderer — SDL window or dummy driver (demo / default host)
+    // //media:present is that select. WS281x is not a present backend.
+    // The MCP tools do not change.
     class Renderer
     {
     public:
         virtual ~Renderer() = default;
         virtual void init() = 0;
+        // Present thread. SDL opens a hidden dummy-driver window.
+        // Pi initializes the HUB75 matrix. False: skip draw and keep the last frame.
+        virtual bool init_present() = 0;
         virtual void draw(const GraphicsContext& context) = 0;
         virtual void cleanup() = 0;
         virtual bool should_close() = 0;
     };
-    
-    // SDL2 window renderer for Mac development
-    class SDL2Renderer : public Renderer
-    {
-    public:
-        SDL2Renderer();
-        ~SDL2Renderer();
-        void init() override;
-        // Hidden 192x192 software renderer for headless readback. No panel borders.
-        bool init_capture();
-        bool capture(const GraphicsContext& context, GraphicsContext& box, std::string& error);
-        void draw(const GraphicsContext& context) override;
-        void cleanup() override;
-        bool should_close() override;
-        bool ready() const { return renderer_ != nullptr; }
 
-    private:
-        SDL_Window* window_ = nullptr;
-        SDL_Renderer* renderer_ = nullptr;
-        SDL_Texture* texture_ = nullptr;
-        int frame_count_ = 0;
-        bool quit_ = false;
-        bool draw_borders_ = true;
+    // Defined by the one present factory //media:graphics links
+    // (present_rpi.cpp or present_sdl.cpp).
+    std::unique_ptr<Renderer> create_present_renderer();
 
-        bool create_renderer(bool capture);
-        bool paint_to_renderer(const GraphicsContext& context);
-        bool read_box(GraphicsContext& box, std::string& error);
-        
-        void draw_led_panels(const GraphicsContext& context);
-        void draw_single_panel(const GraphicsContext& context, int panel_index, int x_offset);
-    };
-    
-    // Raspberry Pi LED matrix renderer
-    class RpiRenderer : public Renderer
-    {
-    public:
-        RpiRenderer();
-        ~RpiRenderer();
-        void init() override;
-        void draw(const GraphicsContext& context) override;
-        void cleanup() override;
-        bool should_close() override { return false; }  // RPi doesn't have window close
-        
-    private:
-        void* matrix_ __attribute__((unused)) = nullptr;  // RGBMatrix* - will be properly typed when we include the header
-    };
-    
     // Main graphics interface
     extern std::unique_ptr<Renderer> renderer_;
     extern std::unique_ptr<GraphicsContext> context_;
