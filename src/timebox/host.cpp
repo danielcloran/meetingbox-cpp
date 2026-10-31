@@ -68,6 +68,11 @@ bool kind_from(const std::string &text, int *kind_timer) {
   return false;
 }
 
+void log_reaped(const std::vector<std::pair<std::string, int>> &reaped) {
+  for (const auto &item : reaped)
+    std::cerr << "timebox: reap " << item.first << " id=" << item.second << " (done)\n";
+}
+
 }  // namespace
 
 TimeboxHost::TimeboxHost() = default;
@@ -117,8 +122,26 @@ TimeboxProcess TimeboxHost::view_locked(const Slot &slot) const {
   view.seconds = slot.total_ms / 1000;
   view.remaining_ms = slot.remaining_ms;
   view.frame_seq = slot.frame_seq;
-  view.done = slot.kind == Kind::Timer && slot.total_ms > 0 && slot.remaining_ms <= 0;
+  view.done = finished_timer(slot);
   return view;
+}
+
+bool TimeboxHost::finished_timer(const Slot &slot) const {
+  return slot.kind == Kind::Timer && slot.total_ms > 0 && slot.remaining_ms <= 0;
+}
+
+std::vector<std::pair<std::string, int>> TimeboxHost::reap_done_locked() {
+  std::vector<std::pair<std::string, int>> reaped;
+  for (int i = 0; i < kCapacity; ++i) {
+    Slot &slot = slots_[i];
+    if (!slot.alive || !finished_timer(slot))
+      continue;
+    if (focus_id_ == slot.id)
+      focus_id_ = 0;
+    reaped.emplace_back(slot.name, slot.id);
+    slot = Slot{};
+  }
+  return reaped;
 }
 
 int TimeboxHost::index_locked(int id, const std::string &name, std::string &error) const {
@@ -166,39 +189,52 @@ std::string TimeboxHost::start_process(const std::string &kind, const std::strin
 
   int started_id = 0;
   bool started_focused = false;
+  std::vector<std::pair<std::string, int>> reaped;
+  std::string start_error;
   {
     std::lock_guard<std::mutex> lock(mu_);
+    // Done slots must not keep a name or a seat. Drop them before both checks
+    // so a table full of finished timers can accept this start.
+    reaped = reap_done_locked();
     for (const auto &slot : slots_) {
-      if (slot.alive && slot.name == name)
-        return "name already in use";
-    }
-    int index = -1;
-    for (int i = 0; i < kCapacity; ++i) {
-      if (!slots_[i].alive) {
-        index = i;
+      if (slot.alive && slot.name == name) {
+        start_error = "name already in use";
         break;
       }
     }
-    if (index < 0)
-      return "process table full (8)";
-
-    Slot &slot = slots_[index];
-    slot = Slot{};
-    slot.alive = true;
-    slot.id = next_id_++;
-    slot.name = name;
-    slot.kind = slot_kind;
-    slot.total_ms = total_ms;
-    slot.remaining_ms = total_ms;
-    slot.frame = std::move(frame);
-    slot.frame_seq = 1;
-    if (focus)
-      focus_id_ = slot.id;
-    started_id = slot.id;
-    started_focused = slot.id == focus_id_;
-    if (created)
-      *created = view_locked(slot);
+    if (start_error.empty()) {
+      int index = -1;
+      for (int i = 0; i < kCapacity; ++i) {
+        if (!slots_[i].alive) {
+          index = i;
+          break;
+        }
+      }
+      if (index < 0) {
+        start_error = "process table full (8)";
+      } else {
+        Slot &slot = slots_[index];
+        slot = Slot{};
+        slot.alive = true;
+        slot.id = next_id_++;
+        slot.name = name;
+        slot.kind = slot_kind;
+        slot.total_ms = total_ms;
+        slot.remaining_ms = total_ms;
+        slot.frame = std::move(frame);
+        slot.frame_seq = 1;
+        if (focus)
+          focus_id_ = slot.id;
+        started_id = slot.id;
+        started_focused = slot.id == focus_id_;
+        if (created)
+          *created = view_locked(slot);
+      }
+    }
   }
+  log_reaped(reaped);
+  if (!start_error.empty())
+    return start_error;
   std::cerr << "timebox: start " << kind << " " << name << " id=" << started_id
             << (started_focused ? " focused" : "") << "\n";
   return {};
@@ -329,6 +365,7 @@ void TimeboxHost::on_timer_draw(long long dt_ms) {
     int total;
   };
   std::vector<Job> jobs;
+  std::vector<std::pair<std::string, int>> reaped;
   {
     std::lock_guard<std::mutex> lock(mu_);
     for (int i = 0; i < kCapacity; ++i) {
@@ -341,9 +378,18 @@ void TimeboxHost::on_timer_draw(long long dt_ms) {
         else
           slot.remaining_ms -= static_cast<int>(dt_ms);
       }
+    }
+    // Free the slot on this tick. The present thread keeps the last frame
+    // once focus is cleared, the same way timebox_stop does.
+    reaped = reap_done_locked();
+    for (int i = 0; i < kCapacity; ++i) {
+      const Slot &slot = slots_[i];
+      if (!slot.alive || slot.kind != Kind::Timer)
+        continue;
       jobs.push_back(Job{i, slot.id, slot.remaining_ms, slot.total_ms});
     }
   }
+  log_reaped(reaped);
   for (const Job &job : jobs) {
     std::vector<uint8_t> frame;
     render_timer_rgb(frame, job.remaining, job.total);

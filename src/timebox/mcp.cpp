@@ -190,7 +190,7 @@ Json::Value tool_list() {
       schema(Json::Value(Json::objectValue), {}));
 
   add("timebox_list_processes",
-      "List running processes. Unfocused processes keep running.",
+      "List running processes. Finished timers are removed. Unfocused processes keep running until they finish or are stopped.",
       schema(Json::Value(Json::objectValue), {}));
 
   Json::Value start_props;
@@ -202,13 +202,15 @@ Json::Value tool_list() {
   start_props["seconds"] = prop("integer", "Timer length. Default 60. Ignored for paint.");
   start_props["focus"] = prop("boolean", "Show this process on the LEDs. Default true. Does not stop others.");
   add("timebox_start",
-      "Start a timer or paint process. At most 8 run at once. focus defaults to true and does not stop other processes.",
+      "Start a timer or paint process. At most 8 run at once. Finished timers are dropped first so their slots can be reused; eight live processes still fail. focus defaults to true and does not stop other processes.",
       schema(std::move(start_props), {"kind", "name"}));
 
   Json::Value id_name;
   id_name["id"] = prop("integer", "Process id");
   id_name["name"] = prop("string", "Process name");
-  add("timebox_stop", "Stop one process by id or name. Others keep running.", schema(id_name, {}));
+  add("timebox_stop",
+      "Stop one process by id or name. Others keep running. Use this for a live process; a finished timer is already gone.",
+      schema(id_name, {}));
 
   Json::Value show_props = id_name;
   add("timebox_show",

@@ -7,11 +7,17 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 // Latest-frame slots for a dumb box. One present thread copies the focused
 // slot and draws it. Control calls only write slots; they do not wait for SDL.
 // A missing or late frame keeps the pixels already on the LEDs.
+//
+// A timer that reaches remaining_ms == 0 is removed on that tick, which frees
+// its slot. If it was focused, focus clears and the last frame stays on the
+// LEDs until the next show or start. Paint processes stay until timebox_stop.
+// Unfocused processes keep running until they finish or are stopped.
 
 struct TimeboxProcess {
   int id = 0;
@@ -51,14 +57,18 @@ class TimeboxHost {
   TimeboxHost &operator=(const TimeboxHost &) = delete;
 
   // present_loop draws the focused slot. timer_loop ticks InterruptTimer and
-  // repaints every timer into its own slot, focused or not.
+  // repaints every timer into its own slot, focused or not. A timer that
+  // reaches zero is removed on that tick.
   void start(bool present_loop = true, bool timer_loop = true);
   void shutdown();
 
   // seconds < 0 uses kDefaultTimerSeconds for a timer and is ignored for paint.
   // focus switches the LEDs and does not stop any other process.
+  // Finished timers are dropped before the name check and the slot allocation.
+  // Eight live (not finished) processes still return "process table full (8)".
   std::string start_process(const std::string &kind, const std::string &name,
                             int seconds, bool focus, TimeboxProcess *created);
+  // Removes a process that is still listed, live or not yet reaped.
   std::string stop_process(int id, const std::string &name, TimeboxProcess *stopped);
   std::string show_process(int id, const std::string &name, TimeboxProcess *focused);
   // rgb is packed RGB888, kWidth * kHeight, no padding. Paint slots only.
@@ -72,6 +82,7 @@ class TimeboxHost {
   TimeboxStatus status() const;
 
   // Test clock. The live loop uses InterruptTimer::tick instead.
+  // Both paths remove a timer on the tick that reaches remaining_ms == 0.
   void advance_timers(long long dt_ms);
 
   uint64_t present_count() const;
@@ -99,6 +110,10 @@ class TimeboxHost {
 
   TimeboxProcess view_locked(const Slot &slot) const;
   int index_locked(int id, const std::string &name, std::string &error) const;
+  // Matches TimeboxProcess.done. Paint slots are never finished.
+  bool finished_timer(const Slot &slot) const;
+  // Caller holds mu_. Clears focus when the focused timer is the one removed.
+  std::vector<std::pair<std::string, int>> reap_done_locked();
   void on_timer_draw(long long dt_ms);
   void present_loop();
   void timer_loop();

@@ -1,11 +1,11 @@
 # TimeBox MCP
 
-The box shows one process. Others keep running until `timebox_stop`.
+The box shows one process. Others keep running until they finish or `timebox_stop`.
 Clients push frames. The present thread copies the focused 320×64 slot and never reads MCP input. If a new frame is late, the last one stays on the LEDs.
 
 A frame is packed RGB888, 320×64, five 64×64 panels: `Left | Front | Top | Right | Back`. The lid is the top panel (index 2).
 
-`timer` uses `InterruptTimer` and the existing faces (blue row-fade on the walls, spiral on the lid). `paint` only stores the latest frame a client pushed. At most 8 processes.
+`timer` uses `InterruptTimer` and the existing faces (blue row-fade on the walls, spiral on the lid). `paint` only stores the latest frame a client pushed. At most 8 processes. A timer that reaches zero leaves the table on that tick and frees its slot. If it was focused, focus clears and the last frame stays on the LEDs until the next show or start. `timebox_start` also drops finished timers before it allocates, and still fails when 8 live processes remain.
 
 Audio, HTTP, and a skill registry are not part of this host.
 
