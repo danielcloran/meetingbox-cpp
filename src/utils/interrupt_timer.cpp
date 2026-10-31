@@ -18,11 +18,21 @@ InterruptTimer::InterruptTimer() : listeners(events::queue)
     lastUpdateMilliseconds = current_timestamp();
 
     listeners.appendListener(EventType::stop, std::bind(&InterruptTimer::handleStopEvent, this, std::placeholders::_1));
+    listeners.appendListener(EventType::set_frame_rate, std::bind(&InterruptTimer::handleSetFrameRateEvent, this, std::placeholders::_1));
 }
 
 void InterruptTimer::handleStopEvent(events::EventPointer theEvent)
 {
     stop = true;
+}
+
+void InterruptTimer::handleSetFrameRateEvent(events::EventPointer theEvent)
+{
+    auto *event = static_cast<SetFrameRateEvent *>(theEvent.get());
+    if (event)
+    {
+        setFrameRate(event->getFrameRate());
+    }
 }
 
 void InterruptTimer::update()
@@ -57,6 +67,12 @@ void InterruptTimer::tick(long long timePassed)
 
 void InterruptTimer::setFrameRate(int frameRate)
 {
+    if (frameRate <= 0)
+    {
+        std::cerr << "[InterruptTimer] Ignoring invalid frame rate: " << frameRate << std::endl;
+        return;
+    }
+
     millisecondsBetweenUpdates = 1000 / frameRate;
 }
 
