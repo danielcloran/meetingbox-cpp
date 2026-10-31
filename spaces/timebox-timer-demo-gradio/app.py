@@ -1,8 +1,10 @@
-"""Hosted TimeBox timer demo: Gradio webpage + MCP tools.
+"""Pro-only TimeBox timer demo: Gradio webpage + MCP tools.
 
-Mirrors meetingbox-cpp timer faces (row-fade walls, spiral lid) so agents and
-humans can exercise a public demo without reaching the physical box.
+Hugging Face returns HTTP 402 for Gradio Spaces on the free cpu-basic tier.
+The Action deploys the Static Space in ../timebox-timer-demo/ instead.
+Run this app on HF Pro or another Gradio host.
 
+Mirrors meetingbox-cpp timer faces (row-fade walls, spiral lid).
 Strip order is Left | Front | Top | Right | Back. The lid is panel index 2.
 """
 from __future__ import annotations
@@ -324,11 +326,12 @@ CSS = """
 with gr.Blocks(title="TimeBox timer demo", theme=gr.themes.Soft(), css=CSS) as demo:
     with gr.Column(elem_id="col-container"):
         gr.Markdown(
-            "# TimeBox timer demo\n"
-            "Hosted software preview of the TimeBox MCP timer faces from "
+            "# TimeBox timer demo (Gradio + MCP, HF Pro)\n"
+            "Software preview of the TimeBox MCP timer faces from "
             "[meetingbox-cpp](https://github.com/danielcloran/meetingbox-cpp). "
             "Not the physical LEDs — same paint math (row-fade walls, spiral lid "
-            "on panel 2 / Top).\n\n"
+            "on panel 2 / Top). The free public demo is the Static Space; "
+            "this app needs HF Pro or another host.\n\n"
             "Strip: Left | Front | Top | Right | Back. Unfolded box, lid in the center: "
             "Back above, Front below, Left and Right on the sides.\n\n"
             "MCP: `/gradio_api/mcp/` — tools `timebox_start`, `timebox_stop`, "
