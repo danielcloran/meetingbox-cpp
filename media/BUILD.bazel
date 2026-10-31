@@ -2,7 +2,9 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
-# Reference to the Raspberry Pi config setting
+# Real device: linux aarch64 (//platforms:aarch64_platform and
+# //platforms:raspberry_pi_platform). HUB75 panels, not a demo flag.
+# Dell / CI / default hosts do not match and stay on SdlRenderer.
 config_setting(
     name = "raspberry_pi",
     constraint_values = [
@@ -22,7 +24,8 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-# Audio library with Porcupine support
+# Microphone / hotword path. Independent of the present-backend select
+# (RpiRenderer vs SdlRenderer). Do not strip this when changing LED present.
 cc_library(
     name = "audio",
     srcs = [
@@ -67,37 +70,92 @@ cc_binary(
     visibility = ["//visibility:public"],
 )
 
-# Graphics library with SDL2 support
+# Shared paint core: strip, unfolded box, timer faces. No SDL and no matrix driver.
 cc_library(
-    name = "graphics",
+    name = "graphics_core",
     srcs = [
         "src/graphics/box_layout.cpp",
-        "src/graphics/graphics.cpp",
+        "src/graphics/graphics_context.cpp",
         "src/graphics/timebox_timer.cpp",
     ],
-    hdrs = glob([
-        "include/graphics/**/*.hpp",
-    ]),
+    hdrs = [
+        "include/graphics/graphics.hpp",
+        "include/graphics/timebox_timer.hpp",
+    ],
     strip_include_prefix = "include",
     deps = [
         "//events",
         "@fmt//:fmt",
         "@spdlog//:spdlog",
-    ] + select({
-        ":raspberry_pi": ["@rpi_ws281x//:ws2811"],
-        "//conditions:default": ["@sdl2//:sdl2"],
+    ],
+    copts = ["-std=c++17"],
+)
+
+# Demo and default-host present backend. Not the product.
+cc_library(
+    name = "SdlRenderer",
+    srcs = ["src/graphics/sdl_renderer.cpp"],
+    hdrs = ["include/graphics/sdl_renderer.hpp"],
+    strip_include_prefix = "include",
+    copts = ["-std=c++17"],
+    deps = [
+        ":graphics_core",
+        "@sdl2//:sdl2",
+    ],
+)
+
+# Product present backend: HUB75 / rpi-rgb-led-matrix (FM6126A).
+# WS281x is the wrong panel and is not a dependency of this target.
+cc_library(
+    name = "RpiRenderer",
+    srcs = ["src/graphics/rpi/renderer.cpp"],
+    hdrs = [
+        "include/graphics/rpi_renderer.hpp",
+        "include/graphics/rpi/pixel_mapper.hpp",
+    ],
+    strip_include_prefix = "include",
+    copts = ["-std=c++17"],
+    deps = [
+        ":graphics_core",
+        "@rpi_rgb_led_matrix//:rgbmatrix",
+    ],
+    # The driver is the Pi. Default hosts select SdlRenderer via //media:present
+    # and do not link this library.
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+    ],
+)
+
+# Hard rule: Raspberry Pi + microphone + HUB75 panels is the product.
+# Dell, web, and MCP demos share //src:timebox_mcp. They must not replace
+# this path. Default hosts get SdlRenderer; linux aarch64 gets RpiRenderer.
+alias(
+    name = "present",
+    actual = select({
+        ":raspberry_pi": ":RpiRenderer",
+        "//conditions:default": ":SdlRenderer",
     }),
+)
+
+# Paint API plus the one present factory for //media:present.
+# present_sdl.cpp and present_rpi.cpp each define create_present_renderer().
+cc_library(
+    name = "graphics",
+    srcs = [
+        "src/graphics/graphics.cpp",
+    ] + select({
+        ":raspberry_pi": ["src/graphics/present_rpi.cpp"],
+        "//conditions:default": ["src/graphics/present_sdl.cpp"],
+    }),
+    deps = [
+        ":graphics_core",
+        ":present",
+    ],
     data = [
         ":media_resources",
     ],
-    copts = [
-        "-std=c++17",
-    ] + select({
-        ":raspberry_pi": ["-DRASPBERRY_PI"],
-        "//conditions:default": [],
-    }),
-    # SDL2 is the Bazel-built static library (@sdl2). No system SDL package.
-    visibility = ["//visibility:public"],
+    copts = ["-std=c++17"],
 )
 
 # Media library that combines audio and graphics
@@ -120,7 +178,10 @@ cc_binary(
         "src/graphics/graphics_test_main.cpp",
     ],
     copts = ["-std=c++17"],
-    deps = [":graphics"],
+    deps = [
+        ":graphics",
+        ":SdlRenderer",
+    ],
     visibility = ["//visibility:public"],
 )
 
@@ -134,7 +195,10 @@ cc_test(
         "src/graphics/box_layout_test.cpp",
     ],
     copts = ["-std=c++17"],
-    deps = [":graphics"],
+    deps = [
+        ":graphics",
+        ":SdlRenderer",
+    ],
 )
 
 # The countdown moves: a later frame is not a copy of the first, on the strip
@@ -147,6 +211,7 @@ cc_test(
     linkopts = ["-pthread"],
     deps = [
         ":graphics",
+        ":SdlRenderer",
         "//src:timer",
     ],
 )

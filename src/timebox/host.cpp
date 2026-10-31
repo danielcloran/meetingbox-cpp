@@ -44,7 +44,7 @@ void render_timer_rgb(std::vector<uint8_t> &frame, int remaining_ms, int total_m
   }
 }
 
-void draw_rgb(graphics::SDL2Renderer &renderer, const std::vector<uint8_t> &rgb) {
+void draw_rgb(graphics::Renderer &renderer, const std::vector<uint8_t> &rgb) {
   graphics::GraphicsContext ctx(LED_WIDTH, LED_HEIGHT);
   const int n = TimeboxHost::kWidth * TimeboxHost::kHeight;
   for (int i = 0; i < n; ++i) {
@@ -78,8 +78,6 @@ void TimeboxHost::start(bool present_loop_enabled, bool timer_loop_enabled) {
   if (loops_started_)
     return;
   loops_started_ = true;
-  if (!::getenv("SDL_VIDEODRIVER"))
-    ::setenv("SDL_VIDEODRIVER", "dummy", 0);
   if (present_loop_enabled) {
     present_running_.store(true);
     present_thread_ = std::thread([this] { present_loop(); });
@@ -359,13 +357,12 @@ void TimeboxHost::on_timer_draw(long long dt_ms) {
 void TimeboxHost::advance_timers(long long dt_ms) { on_timer_draw(dt_ms); }
 
 void TimeboxHost::present_loop() {
-  if (!::getenv("SDL_VIDEODRIVER"))
-    ::setenv("SDL_VIDEODRIVER", "dummy", 0);
-  graphics::SDL2Renderer renderer;
-  const bool sdl_ok = renderer.init_capture();
-  sdl_ok_.store(sdl_ok);
-  if (!sdl_ok) {
-    std::cerr << "timebox: SDL headless init failed; holding frames in memory\n";
+  // Backend comes from //media:present (RpiRenderer or SdlRenderer).
+  const std::unique_ptr<graphics::Renderer> renderer = graphics::create_present_renderer();
+  const bool present_ok = renderer && renderer->init_present();
+  sdl_ok_.store(present_ok);
+  if (!present_ok) {
+    std::cerr << "timebox: present backend init failed; holding frames in memory\n";
   } else {
     std::cerr << "timebox: present loop " << kPresentPeriodMs << " ms\n";
   }
@@ -395,8 +392,8 @@ void TimeboxHost::present_loop() {
       present_busy_.store(false);
       break;
     }
-    if (sdl_ok)
-      draw_rgb(renderer, held);
+    if (present_ok)
+      draw_rgb(*renderer, held);
     present_busy_.store(false);
 
     {

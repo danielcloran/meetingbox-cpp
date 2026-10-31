@@ -30,6 +30,7 @@ cc_library(
         ":timer",
         "//include:headers",
         "//media:graphics",
+        "//media:SdlRenderer",
         "@jsoncpp//:jsoncpp",
     ],
 )
@@ -71,6 +72,12 @@ cc_binary(
 )
 
 # Focused LED host plus a newline-delimited MCP stdio server.
+# Present path is //media:present, one control plane either way:
+#   //media:raspberry_pi (linux aarch64) -> //media:RpiRenderer
+#       HUB75 panels, rpi-rgb-led-matrix, FM6126A. This is the product.
+#   default -> //media:SdlRenderer
+#       SDL window or dummy driver. Demo and default-host only.
+# WS281x is not selected. Mic/hotword stays on //media:audio.
 cc_library(
     name = "timebox_host",
     srcs = [
@@ -83,8 +90,19 @@ cc_library(
         ":timer",
         "//include:headers",
         "//media:graphics",
+        "//media:present",
         "@jsoncpp//:jsoncpp",
     ],
+)
+
+alias(
+    name = "RpiRenderer",
+    actual = "//media:RpiRenderer",
+)
+
+alias(
+    name = "SdlRenderer",
+    actual = "//media:SdlRenderer",
 )
 
 cc_binary(

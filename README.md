@@ -9,6 +9,17 @@ A frame is packed RGB888, 320×64, five 64×64 panels: `Left | Front | Top | Rig
 
 Audio, HTTP, and a skill registry are not part of this host.
 
+## Present target
+
+The product is a Raspberry Pi with a microphone and HUB75 panels (FM6126A), driven by [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix). SDL is only the demo and the default host. WS281x is the wrong panel and is not in the build.
+
+`//media:present` selects the backend:
+
+- `//media:RpiRenderer` on linux aarch64 (`//media:raspberry_pi`)
+- `//media:SdlRenderer` on every other host
+
+`//src:timebox_mcp` keeps the same tools either way.
+
 ## Run the server
 
 ```bash

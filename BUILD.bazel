@@ -10,6 +10,8 @@ alias(
     actual = "//src:timer_demo",
 )
 
+# Present backend is //media:present inside this binary.
+# Product: //media:RpiRenderer (HUB75). Demo host: //media:SdlRenderer.
 alias(
     name = "timebox_mcp",
     actual = "//src:timebox_mcp",

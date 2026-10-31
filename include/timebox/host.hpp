@@ -10,7 +10,9 @@
 #include <vector>
 
 // Latest-frame slots for a dumb box. One present thread copies the focused
-// slot and draws it. Control calls only write slots; they do not wait for SDL.
+// slot and draws it through //media:present (HUB75 RpiRenderer on the Pi,
+// SdlRenderer on the demo host). Control calls only write slots; they do not
+// wait for present.
 // A missing or late frame keeps the pixels already on the LEDs.
 
 struct TimeboxProcess {
@@ -31,6 +33,7 @@ struct TimeboxStatus {
   int capacity = 0;
   uint64_t present_count = 0;
   bool present_running = false;
+  // Selected present backend finished init. Default host: headless SdlRenderer.
   bool sdl_ok = false;
 };
 

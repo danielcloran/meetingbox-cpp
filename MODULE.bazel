@@ -30,24 +30,13 @@ http_archive(
     urls = ["https://github.com/libsdl-org/SDL/releases/download/release-2.32.0/SDL2-2.32.0.tar.gz"],
 )
 
-# rpi_ws281x library for WS2812B LED control
+# HUB75 panels on the Raspberry Pi (FM6126A). The product present path.
+# WS281x (jgarff/rpi_ws281x) is the wrong hardware and is not fetched.
 git_repository(
-    name = "rpi_ws281x",
-    remote = "https://github.com/jgarff/rpi_ws281x.git",
-    commit = "7fc8914ba08f862351ab64c810c9d31190cf6c1a",  # Pin to a recent commit
-    build_file_content = """
-load("@rules_cc//cc:defs.bzl", "cc_library")
-
-package(default_visibility = ["//visibility:public"])
-
-cc_library(
-    name = "ws2811",
-    srcs = glob(["*.c"]),
-    hdrs = glob(["*.h"]),
-    includes = ["."],
-    visibility = ["//visibility:public"],
-)
-""",
+    name = "rpi_rgb_led_matrix",
+    remote = "https://github.com/hzeller/rpi-rgb-led-matrix.git",
+    commit = "3da7a3bdfca4637bb79ff038bc2bb26965197db5",
+    build_file = "//third_party:rgbmatrix.BUILD",
 )
 
 # Header-only event dispatcher library.
