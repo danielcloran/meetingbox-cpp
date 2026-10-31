@@ -53,7 +53,8 @@ jobs:
         run: |
           set -euo pipefail
           expected="$(tr -d '[:space:]' < .bazelversion)"
-          version="$(bazel --color=no version)"
+          # --color is a command option. Before the subcommand, Bazel treats it as a startup option and exits.
+          version="$(bazel version --color=no)"
           printf '%s\n' "${version}"
           actual="$(printf '%s\n' "${version}" | awk '/^Build label:/ { print $3 }')"
           test -n "${actual}"
